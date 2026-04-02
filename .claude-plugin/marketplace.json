@@ -1,0 +1,24 @@
+{
+  "name": "vamsi-claude-skills",
+  "owner": {
+    "name": "Ayithamsetty Vamsi Krishna",
+    "email": ""
+  },
+  "metadata": {
+    "description": "A curated collection of Claude Code skills for full-stack Django + React/TypeScript development.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "django-react-dev",
+      "source": "./plugins/django-react-dev",
+      "description": "Full-stack Django REST Framework + React/TypeScript development skill. Plan, analyse, and implement features with best practices baked in.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ayithamsetty Vamsi Krishna"
+      },
+      "category": "development",
+      "keywords": ["django", "react", "typescript", "drf", "fullstack", "skill"]
+    }
+  ]
+}

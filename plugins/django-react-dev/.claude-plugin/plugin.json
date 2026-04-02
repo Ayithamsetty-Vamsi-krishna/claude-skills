@@ -1,0 +1,10 @@
+{
+  "name": "django-react-dev",
+  "description": "Full-stack Django REST Framework + React/TypeScript development skill. Reads requirements or PRDs, analyses codebases, generates test cases, produces an implementation plan for approval, then implements task-by-task with best practices enforced throughout.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ayithamsetty Vamsi Krishna"
+  },
+  "category": "development",
+  "keywords": ["django", "react", "typescript", "drf", "fullstack", "skill", "backend", "frontend"]
+}
