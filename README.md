@@ -115,9 +115,10 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
-| v1.2.0 | Split into 3 skills (full-stack + backend-only + frontend-only). Conditional reference loading. Split reference files (8 focused files). Templates moved to assets/. Example prompts. `compatibility` frontmatter. Concise plan format. Agent token budget. CHANGELOG added. |
-| v1.1.0 | PDF PRD extraction flow. Codebase analysis agent for large codebases. |
-| v1.0.0 | Initial release — django-react-dev skill. |
+| v1.3.0 | Standardised error response `{success,message,errors}`. CLAUDE.md auto-generation + reading. Serializer validation patterns. Env vars with python-decouple. Feature `index.ts` barrel exports. Zod runtime schema validation. Git commit suggestions per task. `__str__` enforcement. |
+| v1.2.0 | Split into 3 skills. Conditional reference loading. Split reference files. Templates in assets/. Example prompts. `compatibility` frontmatter. Concise plan format. Agent token budget. CHANGELOG added. |
+| v1.1.0 | PDF PRD extraction. Codebase analysis agent. |
+| v1.0.0 | Initial release. |
 
 ---
 

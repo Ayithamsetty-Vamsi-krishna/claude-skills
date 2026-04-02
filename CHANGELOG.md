@@ -5,6 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] — 2026-04-02
+
+### Added
+- `core/exceptions.py` — standardised API error response `{ success, message, errors }` enforced on all endpoints
+- `CLAUDE.md` auto-generation — skill creates project context file on first run, reads it on subsequent runs to skip redundant analysis
+- Serializer field validation — `validate_<field>()` and `validate()` patterns added to reference + Phase 0 now explicitly asks for business rules
+- Environment variables pattern — `python-decouple` + `settings/base|development|production.py` + `.env.example` template in `error-settings.md`
+- `index.ts` barrel export — every feature folder must end with a barrel export sub-task; clean single import path per feature
+- Zod runtime schema validation — all GET responses validated via `ZodSchema.parse()` in service layer; types inferred from schemas
+- `ApiError` type — `{ success, message, errors }` typed and used in all catch blocks
+- Git commit suggestions — after every task the skill suggests a meaningful commit message
+- `__str__` enforcement — added to model checklist and review checklist
+- `CLAUDE.md` reading step — Phase 0 now checks for and reads `CLAUDE.md` before any codebase analysis
+- `error-settings.md` reference file (backend) — covers exception handler, settings, env vars, CORS
+- `exports-validation.md` reference file (frontend) — covers index.ts patterns and Zod validation
+- `CLAUDE.md.template` asset — used for auto-generation on new projects
+- Business rule violations added to test case generation in all three skills
+- Error response shape contract added to API CONTRACT section of plan template
+
+### Changed
+- Phase 0 of all three skills now starts with CLAUDE.md check before codebase analysis
+- Plan template updated: BUSINESS RULES section added, Zod sub-task listed first in frontend tasks
+- Review checklist expanded across all three skills with new items
+
 ## [1.2.0] — 2026-04-02
 
 ### Added
