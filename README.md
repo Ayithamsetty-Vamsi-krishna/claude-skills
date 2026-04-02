@@ -83,6 +83,7 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
+| v1.1.0 | PDF PRD extraction flow (Claude.ai + Claude Code), codebase analysis agent for large codebases |
 | v1.0.0 | Initial release — django-react-dev skill |
 
 ---

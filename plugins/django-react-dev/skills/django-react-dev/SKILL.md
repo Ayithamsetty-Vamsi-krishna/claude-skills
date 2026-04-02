@@ -1,10 +1,11 @@
 ---
 name: django-react-dev
+version: 1.1.0
 description: >
   Full-stack Django REST Framework + React/TypeScript development skill. Use this skill
   whenever the user wants to build, extend, or modify any feature involving Django backend
-  or React frontend — including reading a PRD, analyzing an existing codebase, planning
-  tasks and sub-tasks, generating test cases, and implementing code task-by-task with
+  or React frontend — including reading a PRD (text or PDF), analyzing an existing codebase,
+  planning tasks and sub-tasks, generating test cases, and implementing code task-by-task with
   user approval at each step. Trigger this skill for any of: "implement this feature",
   "build this screen", "create an API for", "I have a PRD", "add this to the backend/frontend",
   "create a Django app for", "build a React component/page for", or any dev task in a
@@ -12,7 +13,7 @@ description: >
   React code — it ensures proper planning, best practices, and structured execution.
 ---
 
-# Django + React/TypeScript Dev Skill
+# Django + React/TypeScript Dev Skill — v1.1.0
 
 You are a senior full-stack engineer specialising in **Django REST Framework** (backend) and **React + TypeScript** (frontend). Follow this skill precisely for every development task.
 
@@ -23,17 +24,71 @@ You are a senior full-stack engineer specialising in **Django REST Framework** (
 ### Step 1: Identify the input type
 Determine if the user provided:
 - (A) A direct instruction / feature description in chat
-- (B) An uploaded PRD / specification document
+- (B) An uploaded PRD / specification document (text, markdown, or PDF)
 
-If (B), read the full document carefully before proceeding.
+#### Handling PDF PRDs
+If the input is a **PDF file**, follow this extraction flow before doing anything else:
+
+**In Claude.ai:** The PDF is already visible in context — read it directly, no extra steps needed.
+
+**In Claude Code (terminal):** Extract the text first using one of these methods:
+```bash
+# Option 1 — pdftotext (fastest, usually available)
+pdftotext path/to/prd.pdf - 
+
+# Option 2 — Python pdfplumber (best for complex layouts)
+python3 -c "
+import pdfplumber
+with pdfplumber.open('path/to/prd.pdf') as pdf:
+    for page in pdf.pages:
+        print(page.extract_text())
+"
+
+# Option 3 — Python pypdf (fallback)
+python3 -c "
+from pypdf import PdfReader
+reader = PdfReader('path/to/prd.pdf')
+for page in reader.pages:
+    print(page.extract_text())
+"
+```
+Once text is extracted, treat it exactly like a text PRD and proceed.
+
+**If the pdf skill is available:** Invoke it first to handle extraction, then continue with this skill from Step 2 onwards.
 
 ### Step 2: Analyse the existing codebase (if present)
-If the user has uploaded files or referenced a codebase:
-- Map the Django app structure (apps, models, serializers, views, urls)
-- Map the React structure (features, components, services, store slices)
-- Note existing patterns, naming conventions, reusable utilities
-- Identify FK relationships and model hierarchy
-- Note any existing FilterSet classes, pagination classes, serializer patterns in use
+
+**If the codebase is small (< 20 files):** Analyse inline — map apps, models, serializers, views, components, store slices, patterns, naming conventions, FK relationships, FilterSets, pagination.
+
+**If the codebase is large (20+ files):** Spawn a dedicated **Codebase Analysis Agent** (Claude Code only) to do a deep parallel analysis. Instruct it to:
+
+```
+You are a codebase analysis agent. Thoroughly map this Django + React/TypeScript codebase and return a structured report covering:
+
+BACKEND:
+- All Django apps and their purpose
+- All models with fields, relationships, and inheritance
+- Serializer patterns (FK handling, nested data, custom create/update)
+- View patterns (which generics used, mixins, permission classes)
+- URL structure and API endpoint inventory
+- Existing FilterSet classes and their fields
+- Pagination configuration
+- Any base classes or shared utilities in core/
+
+FRONTEND:
+- Feature folder structure
+- Redux store shape (slices, state, thunks)
+- API service layer structure (how api.ts is set up)
+- Shared component library (what exists in components/shared/)
+- TypeScript type conventions
+- Any established patterns to preserve
+
+Return as a structured markdown report. Be thorough — this report drives the implementation plan.
+```
+
+Wait for the agent's report before proceeding to Step 3.
+
+**In Claude.ai (no subagents):** Perform this analysis inline yourself — be thorough before moving on.
 
 ### Step 3: Ask ALL clarifying questions FIRST using ask_user_input_v0
 **Do not write any plan or code until all questions are answered.**
@@ -155,9 +210,8 @@ Implement **one task at a time**. After each task, show the code, then ask:
 Never implement the next task without confirmation.
 
 For each task, follow the standards in the relevant reference file:
-- Backend tasks → read `references/backend-standards.md`
-- Frontend tasks → read `references/frontend-standards.md`
-- Test tasks → read `references/testing-standards.md`
+- Backend tasks → read `references/backend.md`
+- Frontend tasks → read `references/frontend.md`
 
 ---
 
