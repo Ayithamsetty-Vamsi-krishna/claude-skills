@@ -1,7 +1,7 @@
 {
   "name": "react-frontend-dev",
   "description": "React + TypeScript frontend skill. Redux Toolkit, Axios with JWT refresh, shadcn/ui + Tailwind, shared component library, memoization patterns, and Vitest testing — all with best practices enforced.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "author": { "name": "Ayithamsetty Vamsi Krishna" },
   "category": "development",
   "keywords": ["react", "typescript", "frontend", "redux", "shadcn", "tailwind", "vitest", "skill"]

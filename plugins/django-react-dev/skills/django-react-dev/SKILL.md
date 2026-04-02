@@ -1,6 +1,6 @@
 ---
 name: django-react-dev
-version: 1.3.0
+version: 1.4.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -21,7 +21,7 @@ examples:
   - "Scaffold a new Django app for payments and connect it to the React frontend"
 ---
 
-# Django + React/TypeScript Full-Stack Skill — v1.3.0
+# Django + React/TypeScript Full-Stack Skill — v1.4.0
 
 You are a senior full-stack engineer specialising in Django REST Framework (backend)
 and React + TypeScript (frontend). For full-stack tasks, orchestrate both.
@@ -154,11 +154,12 @@ COMPLEXITY: Low / Medium / High
 - Serializers/views/filters/URLs → `references/backend/serializers-views.md`
 - Admin/testing → `references/backend/admin-testing.md`
 - ORM/settings → `references/backend/orm-settings.md`
-- Error handling/env vars → `references/backend/error-settings.md`
+- Error handling/env vars/CORS → `references/backend/error-settings.md`
+- API versioning/breaking changes → `references/backend/api-versioning.md`
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 
 **Frontend tasks:**
-- Redux/service/Zod types → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
+- Redux/service/Zod types/selectors → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
 - Component implementation → `references/frontend/components.md`
 - Shared component setup → `references/frontend/shared-library.md` + `assets/templates/shared-components.tsx`
 - Feature barrel export / Zod → `references/frontend/exports-validation.md`
@@ -179,11 +180,20 @@ COMPLEXITY: Low / Medium / High
 - [ ] All querysets filter `is_deleted=False`
 - [ ] Zero N+1 — `select_related`/`prefetch_related` incl. audit fields
 - [ ] DRF Generics only | FilterSet classes only
+- [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`
 - [ ] Dual FK serializer: `<field>_id` + nested `<field>`
-- [ ] Custom `create()`/`update()` for nested children
+- [ ] Child serializers have `list_serializer_class = FilteredListSerializer`
+- [ ] Child serializers have `id = UUIDField(required=False)` (or IntegerField for int PKs)
+- [ ] Child serializers have `dodelete = BooleanField(write_only=True, required=False)`
+- [ ] Parent `create()` and `update()` wrapped with `@transaction.atomic`
+- [ ] `update()` soft-deletes children via `is_deleted=True, is_active=False` — no hard delete
+- [ ] New children only created when `dodelete=False`
+- [ ] FK querysets filter `is_deleted=False`
+- [ ] `SerializerMethodField` for all computed/display fields — no DB queries inside them
 - [ ] `validate_<field>()` / `validate()` for all business rules
 - [ ] All errors return `{ success, message, errors }` via custom exception handler
-- [ ] `core/exceptions.py` registered in `REST_FRAMEWORK` settings
+- [ ] `core/serializers.py` has `FilteredListSerializer`
+- [ ] `core/permissions.py` has `GetPermission` factory
 - [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
 - [ ] Migrations created + applied
 - [ ] Full `admin.py` registration with soft-delete override
@@ -192,21 +202,27 @@ COMPLEXITY: Low / Medium / High
 **Frontend:**
 - [ ] Zod schemas in `types.ts` — TypeScript types inferred from schemas
 - [ ] All GET responses validated via Zod `.parse()` in service layer
-- [ ] `ApiError` type used in all catch blocks
-- [ ] `index.ts` barrel export in every feature folder
-- [ ] Redux Toolkit slice | Axios via `api.ts` only
+- [ ] `ApiError` type in all catch blocks — `{ success, message, errors }`
+- [ ] `index.ts` barrel export — types, actions, selectors, components
+- [ ] `selectors.ts` with `createSelector` — no inline selectors in components
+- [ ] Redux Toolkit slice — every `pending` case resets `error: null`
+- [ ] Every data-fetching `useEffect` returns `() => { promise.abort() }`
+- [ ] Axios via `api.ts` only
 - [ ] All UI from `src/components/shared/`
   - [ ] `<Text>` `<Button>` `<FormField>` `<StatusBadge>` `<DataTable>`
   - [ ] `<Modal>` `<PageHeader>` `<EmptyState>` `<LoadingSpinner>` `<ErrorBanner>`
 - [ ] `React.memo` + `displayName` | `useCallback` | `useMemo` | No `any`
-- [ ] Form errors from `err.errors` (field-level) | `err.message` in toast
-- [ ] Loading / error / empty states everywhere | Tailwind only
+- [ ] Form errors from `err.errors` | `err.message` in toast | Tailwind only
 
 **Tests:**
 - [ ] All Phase 1 cases implemented
-- [ ] Business rule violation tests | Error response shape tests
-- [ ] Soft-delete + audit field tests | Zod schema tests
+- [ ] Business rule violation tests | Error `{ success, message, errors }` shape verified
+- [ ] Soft-delete tests: deleted absent from list, 404 on detail
+- [ ] dodelete child tests: soft-deleted not hard-deleted
+- [ ] Audit field tests: `created_by`/`updated_by` populated
+- [ ] Zod schema tests: invalid API response caught
 - [ ] Component loading/error/empty/form-error states tested
+- [ ] `useEffect` abort: no state update after unmount
 
 **Project hygiene:**
 - [ ] `CLAUDE.md` created or updated with new apps/features

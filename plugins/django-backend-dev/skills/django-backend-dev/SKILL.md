@@ -1,6 +1,6 @@
 ---
 name: django-backend-dev
-version: 1.3.0
+version: 1.4.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the user app to use DRF Generics instead of APIView"
 ---
 
-# Django Backend Dev Skill — v1.3.0
+# Django Backend Dev Skill — v1.4.0
 
 You are a senior Django REST Framework engineer. Follow this skill precisely.
 
@@ -121,10 +121,11 @@ COMPLEXITY: Low / Medium / High
 
 ### Reference Loading (load ONLY what the current task needs)
 - Models / BaseModel / mixins → `references/models.md`
-- Serializers / views / filters / URLs → `references/serializers-views.md`
+- Serializers / views / filters / URLs / permissions → `references/serializers-views.md`
 - Admin / testing → `references/admin-testing.md`
 - ORM / settings → `references/orm-settings.md`
-- Error handling / settings / env vars → `references/error-settings.md`
+- Error handling / env vars / CORS → `references/error-settings.md`
+- API versioning / breaking changes → `references/api-versioning.md`
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 
@@ -145,20 +146,29 @@ COMPLEXITY: Low / Medium / High
 - [ ] Zero N+1 — `select_related`/`prefetch_related` on every queryset incl. audit fields
 - [ ] DRF Generics only — no APIView
 - [ ] FilterSet classes only — no raw query params
+- [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`
 - [ ] Dual FK serializer: `<field>_id` write + `<field>` nested read
-- [ ] Custom `create()`/`update()` for nested children
-- [ ] `validate_<field>()` / `validate()` methods for all business rules
+- [ ] Child serializers have `list_serializer_class = FilteredListSerializer`
+- [ ] Child serializers have `id = UUIDField(required=False)` (or IntegerField for int PKs)
+- [ ] Child serializers have `dodelete = BooleanField(write_only=True, required=False)`
+- [ ] Parent `create()` and `update()` wrapped with `@transaction.atomic`
+- [ ] `update()` soft-deletes children via `is_deleted=True, is_active=False` — no hard delete
+- [ ] New children only created when `dodelete=False`
+- [ ] FK querysets filter `is_deleted=False` (e.g. `Product.objects.filter(is_deleted=False)`)
+- [ ] `SerializerMethodField` for all computed/display fields
+- [ ] No DB queries inside `SerializerMethodField` (use prefetched data)
+- [ ] `validate_<field>()` / `validate()` for all business rules
 - [ ] All errors return `{ success, message, errors }` via custom exception handler
 - [ ] `core/exceptions.py` registered in `REST_FRAMEWORK` settings
-- [ ] Settings use `python-decouple` — no hardcoded secrets
-- [ ] `.env.example` committed, `.env` in `.gitignore`
-- [ ] Pagination on all list endpoints
-- [ ] JWT auth on all protected endpoints
-- [ ] All models registered in `admin.py` with full config + soft-delete override
-- [ ] Migrations created and applied for all model changes
-- [ ] Query profiling checked — zero N+1 confirmed via silk/debug-toolbar
-- [ ] All test cases from Phase 1 implemented incl. business rule violation cases
-- [ ] Soft-delete test: deleted record absent from list
+- [ ] `core/serializers.py` has `FilteredListSerializer`
+- [ ] `core/permissions.py` has `GetPermission` factory
+- [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
+- [ ] Migrations created and applied
+- [ ] Full `admin.py` registration with soft-delete override
+- [ ] Silk/debug-toolbar checked — zero N+1 confirmed
+- [ ] All test cases from Phase 1 implemented
+- [ ] Business rule violation tests with correct error shape
+- [ ] Soft-delete test: deleted record absent from list, 404 on detail
+- [ ] dodelete test: child soft-deleted, not hard-deleted
 - [ ] `created_by`/`updated_by` verified in create/update tests
-- [ ] Error response shape verified in negative test cases
 - [ ] CLAUDE.md created or updated with new app/feature info

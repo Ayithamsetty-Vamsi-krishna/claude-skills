@@ -166,3 +166,128 @@ import { camelizeKeys, decamelizeKeys } from 'humps'
 // request: config.data = decamelizeKeys(config.data)
 // response: response.data = camelizeKeys(response.data)
 ```
+
+---
+
+## Redux Selectors (features/<feature>/selectors.ts) (#7)
+
+Every feature MUST have a dedicated `selectors.ts` using `createSelector` for memoization.
+Never write inline selectors inside components.
+
+```typescript
+// src/features/orders/selectors.ts
+import { createSelector } from '@reduxjs/toolkit'
+import type { RootState } from '@/app/store'
+
+// Base selectors — raw state access
+const selectOrdersState = (state: RootState) => state.orders
+
+// Memoized derived selectors
+export const selectOrders = createSelector(
+  selectOrdersState,
+  (state) => state.orders
+)
+
+export const selectOrdersLoading = createSelector(
+  selectOrdersState,
+  (state) => state.loading
+)
+
+export const selectOrdersError = createSelector(
+  selectOrdersState,
+  (state) => state.error
+)
+
+export const selectTotalCount = createSelector(
+  selectOrdersState,
+  (state) => state.totalCount
+)
+
+export const selectSelectedOrder = createSelector(
+  selectOrdersState,
+  (state) => state.selectedOrder
+)
+
+// Parameterised selector — select by ID
+export const selectOrderById = (id: string) =>
+  createSelector(selectOrders, (orders) => orders.find((o) => o.id === id) ?? null)
+
+// Derived selector — filter pending orders
+export const selectPendingOrders = createSelector(
+  selectOrders,
+  (orders) => orders.filter((o) => o.status === 'pending')
+)
+```
+
+Usage in components — always via selectors, never inline:
+```typescript
+// ✅ Correct — memoized, no unnecessary re-renders
+const orders = useAppSelector(selectOrders)
+const loading = useAppSelector(selectOrdersLoading)
+const order = useAppSelector(selectOrderById(id))
+
+// ❌ Wrong — new reference every render, causes re-renders
+const orders = useAppSelector((state) => state.orders.orders)
+```
+
+**Rule:** Add `selectors.ts` creation as a mandatory sub-task in every frontend feature plan.
+Export selectors from the feature `index.ts`.
+
+---
+
+## useEffect with dispatch().abort() Cleanup (#9)
+
+Prevent stale state updates when a component unmounts before a request completes.
+Always use the `.abort()` pattern for data-fetching `useEffect` hooks.
+
+```typescript
+import React, { useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from '@/app/hooks'
+import { fetchOrders } from '../ordersSlice'
+import { selectOrders, selectOrdersLoading, selectOrdersError } from '../selectors'
+
+export const OrderList = React.memo(() => {
+  const dispatch = useAppDispatch()
+  const orders = useAppSelector(selectOrders)
+  const loading = useAppSelector(selectOrdersLoading)
+  const error = useAppSelector(selectOrdersError)
+
+  useEffect(() => {
+    // Dispatch returns a promise with .abort() method
+    const promise = dispatch(fetchOrders())
+
+    // Cleanup — abort the request if component unmounts before it completes
+    return () => {
+      promise.abort()
+    }
+  }, [dispatch])
+
+  // ... render
+})
+OrderList.displayName = 'OrderList'
+```
+
+For effects with dependencies (e.g. filter params):
+```typescript
+useEffect(() => {
+  const promise = dispatch(fetchOrders({ status: activeFilter }))
+  return () => { promise.abort() }
+}, [dispatch, activeFilter])
+```
+
+---
+
+## Error Reset Before Re-fetch (#8)
+
+Always reset error state to null before dispatching a new request.
+The `pending` extraReducer already does `s.error = null` — this is enforced in the slice pattern above.
+For manual re-fetch triggers (e.g. retry button), dispatch `clearError` first:
+
+```typescript
+const handleRetry = useCallback(() => {
+  dispatch(clearError())          // reset error state
+  dispatch(fetchOrders())         // re-fetch
+}, [dispatch])
+```
+
+Add to the review checklist: every `pending` case in `extraReducers` sets `error: null`.

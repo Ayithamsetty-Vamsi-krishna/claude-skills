@@ -47,6 +47,34 @@ class AuditMixin:
         serializer.save(updated_by=self.request.user)
 '''
 
+# ── core/serializers.py ──────────────────────────────────────────────────────
+CORE_SERIALIZERS = '''
+from rest_framework import serializers
+
+class FilteredListSerializer(serializers.ListSerializer):
+    """Auto-filters soft-deleted children on all read operations."""
+    def to_representation(self, data):
+        data = data.filter(is_deleted=False, is_active=True)
+        return super().to_representation(data)
+'''
+
+# ── core/permissions.py ───────────────────────────────────────────────────────
+CORE_PERMISSIONS = '''
+from rest_framework.permissions import BasePermission
+
+def GetPermission(perms=""):
+    """Factory returning a permission class for a specific Django permission string."""
+    class CheckPermission(BasePermission):
+        def has_permission(self, request, view):
+            if not bool(request.user and request.user.is_authenticated):
+                return False
+            if request.user.is_superuser:
+                return True
+            return perms in list(request.user.get_all_permissions())
+    CheckPermission.__name__ = f"CheckPermission_{perms}"
+    return CheckPermission
+'''
+
 # ── core/pagination.py ────────────────────────────────────────────────────────
 CORE_PAGINATION = '''
 from rest_framework.pagination import PageNumberPagination

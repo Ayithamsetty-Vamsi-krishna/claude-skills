@@ -5,6 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] — 2026-04-02
+
+### Fixed
+- **Critical:** `update()` previously hard-deleted nested children (`instance.items.all().delete()`). Now soft-deletes via `is_deleted=True, is_active=False, deleted_at=now()` — never hard deletes.
+- **Critical:** `create()` and `update()` now wrapped with `@transaction.atomic` — prevents orphaned parent records when child creation fails midway.
+
+### Added
+- `FilteredListSerializer` (core/serializers.py) — `list_serializer_class` on every child serializer; auto-filters `is_deleted=False` children on all GET responses
+- `dodelete` pattern — child serializers expose `dodelete = BooleanField(write_only=True, required=False)`; `update()` checks flag to soft-delete specific children instead of replacing all
+- `id = UUIDField(required=False)` on child serializers — distinguishes existing children (update) from new ones (create) in a single PATCH payload; uses IntegerField for legacy int PK models
+- `SerializerMethodField` guidance — pattern for computed fields (display names, aggregates, derived booleans); enforces no DB queries inside method fields
+- `GetPermission` factory (core/permissions.py) — Django model permissions via `permission_classes = [GetPermission('app.action_model')]`; all views must explicitly set `permission_classes`
+- FK queryset filtering — all FK `queryset=` arguments now filter `is_deleted=False`
+- `selectors.ts` — every feature gets a dedicated selectors file using `createSelector`; no inline selectors in components
+- `dispatch().abort()` cleanup — every data-fetching `useEffect` returns abort cleanup function
+- Error state reset — every `pending` extraReducer case sets `error: null`; `clearError` dispatched before manual re-fetches
+- `api-versioning.md` reference — when to create v2, `DeprecationMixin` pattern, frontend version constants
+- Breaking change question added to Phase 0 clarifying questions for update tasks
+
+### Changed
+- Serializer plan sub-tasks now always start with Zod schemas + types, then selectors.ts
+- All three SKILL.md review checklists expanded with new items
+- `django-app-scaffold.py` template updated with `FilteredListSerializer` and `GetPermission`
+
 ## [1.3.0] — 2026-04-02
 
 ### Added

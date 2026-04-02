@@ -115,8 +115,9 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
-| v1.3.0 | Standardised error response `{success,message,errors}`. CLAUDE.md auto-generation + reading. Serializer validation patterns. Env vars with python-decouple. Feature `index.ts` barrel exports. Zod runtime schema validation. Git commit suggestions per task. `__str__` enforcement. |
-| v1.2.0 | Split into 3 skills. Conditional reference loading. Split reference files. Templates in assets/. Example prompts. `compatibility` frontmatter. Concise plan format. Agent token budget. CHANGELOG added. |
+| v1.4.0 | Fixed child hard-delete bug → dodelete soft-delete pattern. `FilteredListSerializer`. `@transaction.atomic`. `SerializerMethodField` guidance. `GetPermission` factory. `selectors.ts` with `createSelector`. `dispatch().abort()` cleanup. Error state reset. API versioning reference. |
+| v1.3.0 | Standardised error response. CLAUDE.md auto-generation. Serializer validation. Env vars with python-decouple. Feature `index.ts` exports. Zod runtime validation. Git commit suggestions. `__str__` enforcement. |
+| v1.2.0 | Split into 3 skills. Conditional reference loading. Split reference files. Templates in assets/. Example prompts. `compatibility` frontmatter. |
 | v1.1.0 | PDF PRD extraction. Codebase analysis agent. |
 | v1.0.0 | Initial release. |
 

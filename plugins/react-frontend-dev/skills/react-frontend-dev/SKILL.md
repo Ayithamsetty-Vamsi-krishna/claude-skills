@@ -1,6 +1,6 @@
 ---
 name: react-frontend-dev
-version: 1.3.0
+version: 1.4.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the customers feature to use the shared component library"
 ---
 
-# React Frontend Dev Skill — v1.3.0
+# React Frontend Dev Skill — v1.4.0
 
 You are a senior React + TypeScript engineer. Follow this skill precisely.
 
@@ -94,6 +94,7 @@ TASKS
 ─────
 F1: [Task name]
   F1.1 Zod schemas + TypeScript types (types.ts)
+  F1.2 selectors.ts (createSelector for all state slices)
   F1.2 [sub-task]
   F1.3 index.ts barrel export (always last sub-task)
 F2: [Task name]
@@ -114,7 +115,7 @@ COMPLEXITY: Low / Medium / High
 ## PHASE 3 — IMPLEMENTATION (one task at a time, confirm between each)
 
 ### Reference Loading (load ONLY what the current task needs)
-- Redux slice / service / Zod types → `references/state-api.md` + `references/exports-validation.md`
+- Redux slice / service / Zod types / selectors → `references/state-api.md` + `references/exports-validation.md`
 - Component implementation → `references/components.md`
 - Shared component setup → `references/shared-library.md` + `assets/templates/shared-components.tsx`
 - Feature barrel export / Zod validation → `references/exports-validation.md`
@@ -130,9 +131,28 @@ COMPLEXITY: Low / Medium / High
 ## PHASE 4 — REVIEW CHECKLIST
 
 - [ ] Feature folder structure followed
-- [ ] Zod schemas defined in `types.ts` — TypeScript types inferred from schemas
+- [ ] Zod schemas in `types.ts` — TypeScript types inferred from schemas
 - [ ] All GET responses validated via Zod `.parse()` in service layer
 - [ ] `ApiError` type used in all catch blocks — `{ success, message, errors }`
+- [ ] `index.ts` barrel export — exports types, actions, selectors, components
+- [ ] `selectors.ts` with `createSelector` — no inline selectors in components
+- [ ] Redux Toolkit slice — every `pending` case resets `error: null`
+- [ ] `clearError` dispatched before manual re-fetch triggers
+- [ ] Every data-fetching `useEffect` returns `() => { promise.abort() }`
+- [ ] Axios via `api.ts` only — no direct fetch/axios calls
+- [ ] All shared UI from `src/components/shared/`
+  - [ ] `<Text>` | `<Button loading>` | `<FormField>` | `<StatusBadge>`
+  - [ ] `<DataTable>` | `<Modal>` | `<PageHeader>` | `<EmptyState>`
+  - [ ] `<LoadingSpinner>` | `<ErrorBanner>`
+- [ ] `React.memo` + `displayName` on every component
+- [ ] `useCallback` on every function passed as prop
+- [ ] `useMemo` on every expensive derived value
+- [ ] No `any` TypeScript types
+- [ ] camelCase variables, PascalCase components
+- [ ] Loading, error, empty states in every data-fetching component
+- [ ] Form errors from `err.errors` (field-level) | `err.message` in toast
+- [ ] Tailwind + shadcn only — no inline styles
+- [ ] All test cases from Phase 1 implemented
 - [ ] `index.ts` barrel export created for every feature
 - [ ] Redux Toolkit slice for all new state
 - [ ] Axios via `api.ts` only — no direct fetch/axios calls
@@ -149,4 +169,3 @@ COMPLEXITY: Low / Medium / High
 - [ ] Form errors mapped from `err.errors` (field-level) — `err.message` shown in toast
 - [ ] Tailwind + shadcn only — no inline styles
 - [ ] All test cases from Phase 1 implemented
-- [ ] API error shape test: `{ success, message, errors }` handled correctly
