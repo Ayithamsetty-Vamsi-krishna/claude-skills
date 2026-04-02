@@ -84,8 +84,36 @@ PYEOF
 echo ""
 echo "✅ Version bumped successfully."
 echo ""
+
+# 5. Auto-insert CHANGELOG entry template
+DATE=$(date +%Y-%m-%d)
+python3 << PYEOF
+changelog_entry = """## [$NEW_VERSION] — $DATE
+
+### Added
+- 
+
+### Fixed
+- 
+
+### Changed
+- 
+
+"""
+with open('$ROOT/CHANGELOG.md', 'r') as f:
+    content = f.read()
+# Insert after the first line (# Changelog header)
+lines = content.split('\n')
+insert_at = next((i for i, l in enumerate(lines) if l.startswith('## [')), 2)
+lines.insert(insert_at, changelog_entry)
+with open('$ROOT/CHANGELOG.md', 'w') as f:
+    f.write('\n'.join(lines))
+print("  ✓ CHANGELOG.md template inserted at line", insert_at)
+PYEOF
+
+echo ""
 echo "Next steps:"
-echo "  1. Update CHANGELOG.md with v$NEW_VERSION entry"
+echo "  1. Fill in CHANGELOG.md — entry template already inserted"
 echo "  2. Update README.md version table"
 echo "  3. If backend/frontend refs changed: ./scripts/sync-refs.sh"
 echo "  4. git add . && git commit -m 'chore: bump $SKILL_NAME to v$NEW_VERSION'"

@@ -1,48 +1,4 @@
-# Backend: Admin, Testing & Project Config
-
----
-
-## Admin Pattern
-Every model MUST be registered with full config. Never use bare `admin.site.register()`.
-
-```python
-from django.contrib import admin
-from .models import Order, OrderItem
-
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 0
-    readonly_fields = ('id', 'created_at', 'updated_at', 'created_by', 'updated_by')
-    fields = ('product', 'quantity', 'unit_price', 'is_active', 'is_deleted')
-
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'status', 'total_amount',
-                    'is_active', 'is_deleted', 'created_at', 'created_by')
-    list_filter = ('status', 'is_active', 'is_deleted', 'created_at')
-    search_fields = ('id', 'customer__name', 'customer__email', 'notes')
-    readonly_fields = ('id', 'created_at', 'updated_at', 'created_by', 'updated_by', 'deleted_at')
-    fieldsets = (
-        ('Details', {'fields': ('customer', 'status', 'total_amount', 'notes')}),
-        ('Status', {'fields': ('is_active', 'is_deleted', 'deleted_at')}),
-        ('Audit', {'classes': ('collapse',),
-                   'fields': ('id', 'created_at', 'updated_at', 'created_by', 'updated_by')}),
-    )
-    inlines = [OrderItemInline]
-
-    def delete_model(self, request, obj):
-        from django.utils import timezone
-        obj.is_deleted = True
-        obj.is_active = False
-        obj.deleted_at = timezone.now()
-        obj.save()
-
-    def delete_queryset(self, request, queryset):
-        from django.utils import timezone
-        queryset.update(is_deleted=True, is_active=False, deleted_at=timezone.now())
-```
-
----
+# Backend: Testing, Project Config & Factories
 
 ## pytest.ini (project root) — #G3
 Required for pytest to find Django settings. Without this, all tests fail.
@@ -299,14 +255,14 @@ class TestOrderSerializerValidation:
         assert not s.is_valid()
         assert 'status' in s.errors
 
-    # ❌ Business rule — confirmed → cancelled not allowed
+    # ❌ Business rule — confirmed → cancelled not allowed (cross-field validate())
     def test_confirmed_order_cannot_be_cancelled(self, user):
         order = OrderFactory(status='confirmed', created_by=user, updated_by=user)
         s = OrderSerializer(instance=order, data={'status': 'cancelled'}, partial=True)
         assert not s.is_valid()
-        assert 'status' in s.errors
+        assert 'status' in s.errors or 'non_field_errors' in s.errors
 
-    # ❌ Negative amount rejected
+    # ❌ Negative amount rejected (field-level validate_total_amount())
     def test_negative_amount_rejected(self, customer):
         data = {'customer_id': str(customer.id), 'status': 'pending',
                 'total_amount': '-10.00', 'items': []}
@@ -461,6 +417,19 @@ class TestOrderDodeleChildren:
             payload, format='json')
         assert r.status_code == 200
         assert order.items.filter(is_deleted=False).count() == 1
+
+    # ✅ New child has created_by set from request user — audit trail completeness
+    def test_new_child_has_created_by(self, authenticated_client, order, product):
+        client, user = authenticated_client
+        payload = {
+            'items': [{'product_id': str(product.id), 'quantity': 1,
+                       'unit_price': '50.00', 'dodelete': False}]
+        }
+        client.patch(reverse('orders:order-detail', args=[order.id]), payload, format='json')
+        order.refresh_from_db()
+        new_item = order.items.filter(is_deleted=False).first()
+        assert new_item is not None
+        assert new_item.created_by == user    # ← audit trail: created_by via request context
 
 
 @pytest.mark.django_db

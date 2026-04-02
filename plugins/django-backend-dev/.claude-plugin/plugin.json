@@ -1,7 +1,7 @@
 {
   "name": "django-backend-dev",
   "description": "Django REST Framework backend skill. Models, serializers, views, filters, admin, soft delete, audit fields, ORM optimisation, and pytest testing \u2014 all with best practices enforced.",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "author": {
     "name": "Ayithamsetty Vamsi Krishna"
   },

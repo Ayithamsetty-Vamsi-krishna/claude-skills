@@ -13,6 +13,7 @@ claude-skills/
 ├── CONTRIBUTING.md                    # This file
 ├── scripts/
 │   ├── sync-refs.sh                   # Sync refs from specialists → django-react-dev
+│   ├── check-sync.sh                  # Verify refs are in sync (use as pre-commit hook)
 │   └── bump-version.sh                # Bump version for a specific skill
 └── plugins/
     ├── django-backend-dev/            # Django/DRF specialist — SOURCE OF TRUTH for backend refs
@@ -51,6 +52,23 @@ git commit -m "feat: add deleted_by to BaseModel"
 ```
 
 If you forget to run `sync-refs.sh`, the full-stack skill will be out of date.
+
+### Setting Up the Pre-commit Hook (Recommended)
+
+Prevent accidental out-of-sync commits automatically:
+
+```bash
+echo './scripts/check-sync.sh' >> .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+Now every `git commit` will warn you if specialist references are newer than django-react-dev copies. Use `--fix` to auto-sync:
+
+```bash
+./scripts/check-sync.sh --fix   # check and auto-fix
+```
+
+
 
 ---
 

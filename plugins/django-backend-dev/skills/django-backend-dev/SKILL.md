@@ -1,6 +1,6 @@
 ---
 name: django-backend-dev
-version: 1.5.0
+version: 1.5.1
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the user app to use DRF Generics instead of APIView"
 ---
 
-# Django Backend Dev Skill — v1.5.0
+# Django Backend Dev Skill — v1.5.1
 
 You are a senior Django REST Framework engineer. Follow this skill precisely.
 
@@ -58,12 +58,48 @@ Analyse this Django codebase. Concise report (max 400 words, bullets only):
 - Settings structure (env vars, decouple?)
 ```
 
-### Step 4: Clarifying questions (ask_user_input_v0 only)
-- New app or extend existing?
-- Which models are involved?
-- User roles / permissions?
-- **What business rules or data constraints apply?** (for serializer validation)
-- Any external integrations?
+### Step 4: Intelligent Clarifying Questions
+
+**Always use `ask_user_input_v0` regardless of environment (Claude Code or Claude.ai).**
+
+Do NOT use a static question list. Instead:
+
+1. **Analyse the requirement** — identify what is already clear vs what is genuinely ambiguous
+2. **Skip obvious questions** — if the requirement says "extend the orders app", don't ask "new app or existing?"
+3. **Suggest best practice defaults** for anything not specified — present as choices, not open questions
+4. **Ask only what is ambiguous** — maximum clarity, minimum friction
+
+**Decision framework before asking each question:**
+
+| Question | Ask if... | Skip if... |
+|---|---|---|
+| New app or extend existing? | App not mentioned in requirement | Requirement names an existing app |
+| New page or add to existing? | UI scope unclear | Requirement says "add to X page" |
+| User roles / permissions? | Access control not mentioned | Requirement says "all users" or "admin only" |
+| New models or extend existing? | Data structure unclear | Requirement clearly names existing models |
+| Business rules / validation? | **Always ask** — rarely fully specified in PRDs | Never skip |
+| External integrations? | Requirement mentions email, files, payments etc. | No third-party systems mentioned |
+
+**Best practice suggestions — present these as choices when not specified in the requirement:**
+
+```
+Pagination: I recommend 20 records/page (our default). Change?
+  → [Keep 20] [Change to 10] [Change to 50] [Custom]
+
+Permissions: Who can access this endpoint?
+  → [All authenticated users] [Specific Django permission] [Admin only]
+
+Soft delete: Should records be soft-deletable?
+  → [Yes — standard soft delete] [No — hard delete acceptable here]
+
+Filter fields: Which fields should be filterable?
+  → [Suggest based on model fields] [None needed] [I'll specify]
+```
+
+**Round limit:** There is no fixed limit — ask as many rounds as needed until everything is clear.
+But group related questions in one `ask_user_input_v0` call. Never ask one question per call.
+
+**Only proceed to Phase 1 once ALL ambiguities are resolved.**
 
 ---
 
@@ -122,7 +158,8 @@ COMPLEXITY: Low / Medium / High
 ### Reference Loading (load ONLY what the current task needs)
 - Models / BaseModel / mixins → `references/models.md`
 - Serializers / views / filters / URLs / permissions → `references/serializers-views.md`
-- Admin / testing → `references/admin-testing.md`
+- Admin registration → `references/admin.md`
+- Testing / fixtures / pytest config → `references/testing.md`
 - ORM / settings → `references/orm-settings.md`
 - Error handling / env vars / CORS → `references/error-settings.md`
 - API versioning / breaking changes → `references/api-versioning.md`

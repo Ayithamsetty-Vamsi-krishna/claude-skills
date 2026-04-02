@@ -1,6 +1,6 @@
 ---
 name: django-react-dev
-version: 1.5.0
+version: 1.5.1
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -21,7 +21,7 @@ examples:
   - "Scaffold a new Django app for payments and connect it to the React frontend"
 ---
 
-# Django + React/TypeScript Full-Stack Skill — v1.5.0
+# Django + React/TypeScript Full-Stack Skill — v1.5.1
 
 You are a senior full-stack engineer specialising in Django REST Framework (backend)
 and React + TypeScript (frontend). For full-stack tasks, orchestrate both.
@@ -72,13 +72,48 @@ shared component library, Zod usage, TypeScript conventions, naming patterns
 ```
 Wait for full report. In Claude.ai: analyse inline.
 
-### Step 4: Clarifying questions (ask_user_input_v0 only)
-- New Django app or extend existing?
-- New React page/route or component in existing page?
-- User roles / permissions involved?
-- New models needed or extending existing?
-- **What business rules or data validation constraints apply?**
-- External integrations (email, storage, third-party APIs)?
+### Step 4: Intelligent Clarifying Questions
+
+**Always use `ask_user_input_v0` regardless of environment (Claude Code or Claude.ai).**
+
+Do NOT use a static question list. Instead:
+
+1. **Analyse the requirement** — identify what is already clear vs what is genuinely ambiguous
+2. **Skip obvious questions** — if the requirement says "extend the orders app", don't ask "new app or existing?"
+3. **Suggest best practice defaults** for anything not specified — present as choices, not open questions
+4. **Ask only what is ambiguous** — maximum clarity, minimum friction
+
+**Decision framework before asking each question:**
+
+| Question | Ask if... | Skip if... |
+|---|---|---|
+| New app or extend existing? | App not mentioned in requirement | Requirement names an existing app |
+| New page or add to existing? | UI scope unclear | Requirement says "add to X page" |
+| User roles / permissions? | Access control not mentioned | Requirement says "all users" or "admin only" |
+| New models or extend existing? | Data structure unclear | Requirement clearly names existing models |
+| Business rules / validation? | **Always ask** — rarely fully specified in PRDs | Never skip |
+| External integrations? | Requirement mentions email, files, payments etc. | No third-party systems mentioned |
+
+**Best practice suggestions — present these as choices when not specified in the requirement:**
+
+```
+Pagination: I recommend 20 records/page (our default). Change?
+  → [Keep 20] [Change to 10] [Change to 50] [Custom]
+
+Permissions: Who can access this endpoint?
+  → [All authenticated users] [Specific Django permission] [Admin only]
+
+Soft delete: Should records be soft-deletable?
+  → [Yes — standard soft delete] [No — hard delete acceptable here]
+
+Filter fields: Which fields should be filterable?
+  → [Suggest based on model fields] [None needed] [I'll specify]
+```
+
+**Round limit:** There is no fixed limit — ask as many rounds as needed until everything is clear.
+But group related questions in one `ask_user_input_v0` call. Never ask one question per call.
+
+**Only proceed to Phase 1 once ALL ambiguities are resolved.**
 
 **Only proceed to Phase 1 once ALL questions are answered.**
 
@@ -161,7 +196,9 @@ COMPLEXITY: Low / Medium / High
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 
 **Frontend tasks:**
-- Redux/service/Zod types/selectors → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
+- Redux/service/Zod types → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
+- Selectors / React Hook Form / forms / abort → `references/frontend/forms-selectors.md`
+- Selectors / React Hook Form / forms / abort → `references/frontend/forms-selectors.md`
 - Component implementation → `references/frontend/components.md`
 - Shared component setup → `references/frontend/shared-library.md` + `assets/templates/shared-components.tsx`
 - Feature barrel export / Zod → `references/frontend/exports-validation.md`

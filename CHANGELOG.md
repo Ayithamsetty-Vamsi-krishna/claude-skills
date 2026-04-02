@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+
+
+
+## [1.5.1] — 2026-04-02 — Improvements
+
+### Added
+- **Intelligent clarifying questions** — Phase 0 Step 4 now analyses the requirement before asking. Skips questions with obvious answers, suggests best practice defaults as `ask_user_input_v0` choices (pagination size, permissions, soft delete toggle, filter fields). No round limit — asks until everything is clear. `ask_user_input_v0` enforced in all environments.
+- **`app/hooks.ts` typed Redux hooks** — `useAppDispatch` + `useAppSelector` with full TypeScript types. Referenced everywhere, now explicitly defined in `state-api.md`.
+- **Frontend `.env.example` template** — `VITE_API_BASE_URL` pattern with rule: every `import.meta.env.VITE_*` var must have an `.env.example` entry.
+- **`check-sync.sh` pre-commit hook script** — warns when specialist refs are newer than django-react-dev copies. Supports `--fix` flag to auto-sync. Setup: `echo './scripts/check-sync.sh' >> .git/hooks/pre-commit`.
+- **CHANGELOG template auto-inserted by `bump-version.sh`** — no more manual CHANGELOG editing after version bumps.
+- **Cross-field `validate()` unit test** — tests confirmed→cancelled business rule blocked at serializer level.
+- **`created_by` on new children via `update()` test** — verifies audit trail completeness when PATCH creates new nested children.
+
+### Fixed
+- **`FormField` RHF type compatibility** — changed `React.InputHTMLAttributes<HTMLInputElement>` to `React.ComponentPropsWithRef<'input'>`. Prevents TypeScript errors when spreading React Hook Form's `register()` return value.
+- **Admin `delete_queryset` documents `deleted_by` limitation** — Django ORM `.update()` cannot set `deleted_by`. Now documents both options: loop (fills `deleted_by`, slower) vs bulk update (faster, `deleted_by` stays null).
+- **`admin-testing.md` split** into `admin.md` (~45 lines) and `testing.md` (~510 lines). Admin tasks no longer load the entire test suite. ~85% token reduction for admin-only tasks.
+- **`state-api.md` split** into `state-api.md` (~200 lines) and `forms-selectors.md` (~220 lines). Selectors/RHF/abort tasks no longer load full Axios/JWT code.
+- **`CONTRIBUTING.md` updated** with `check-sync.sh` pre-commit hook setup instructions.
+
 ## [1.5.0] — 2026-04-02
 
 ### Fixed

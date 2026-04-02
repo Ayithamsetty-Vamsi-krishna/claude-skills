@@ -66,11 +66,19 @@ import { Label } from '@/components/ui/label'
 import { ErrorBanner } from './ErrorBanner'
 import { cn } from '@/lib/utils'
 
-interface Props extends React.InputHTMLAttributes<HTMLInputElement> { label:string; name:string; error?:string }
-export const FormField = React.memo<Props>(({ label, name, error, className, ...p }) => (
+// ComponentPropsWithRef — compatible with both plain HTML and React Hook Form's register()
+// InputHTMLAttributes would cause TypeScript errors with RHF's RefCallbackHandler ref type
+interface FormFieldProps extends React.ComponentPropsWithRef<'input'> {
+  label: string
+  name: string
+  error?: string
+  className?: string
+}
+
+export const FormField = React.memo<FormFieldProps>(({ label, name, error, className, ...inputProps }) => (
   <div className={cn('space-y-1', className)}>
     <Label htmlFor={name}>{label}</Label>
-    <Input id={name} name={name} aria-invalid={!!error} {...p} />
+    <Input id={name} name={name} aria-invalid={!!error} {...inputProps} />
     {error && <ErrorBanner message={error} inline />}
   </div>
 ))

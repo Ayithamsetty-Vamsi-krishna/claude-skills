@@ -115,6 +115,7 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
+| v1.5.1 | Intelligent clarifying questions with best-practice suggestions. `app/hooks.ts` typed hooks. `FormField` RHF type fix. `admin.md`+`testing.md` split (85% token reduction). `forms-selectors.md` split. `check-sync.sh` pre-commit hook. CHANGELOG auto-template in `bump-version.sh`. Cross-field validator tests. `created_by` new children test. Frontend `.env.example`. |
 | v1.5.0 | Phase 0 reordered. `deleted_by` in BaseModel + SoftDeleteMixin. `bulk_create` removed (breaks signal-based code generation). `FilteredListSerializer` safety fix. Child `deleted_by` in `update()`. React Hook Form + Zod. React Router protected routes. TableSkeleton. `useEffect` abort test. FilterSet parametrize. Cross-app fixtures. `pytest-cov` 80%. `sync-refs.sh` + `bump-version.sh` scripts. `CONTRIBUTING.md`. |
 | v1.4.1 | **Bug fixes:** Broken conftest.py, wrong error mock shape, hardcoded renderWithStore, selectors from wrong file, missing abort() cleanup, wrong catch type, stale project structure. Added: factory_boy, dodelete tests, GetPermission tests, serializer unit tests, Zod tests, parametrize, FilteredListSerializer tests, userEvent, selector tests, pytest.ini, requirements.txt. |
 | v1.4.0 | Fixed child hard-delete bug. FilteredListSerializer. @transaction.atomic. SerializerMethodField. GetPermission. selectors.ts. dispatch().abort(). Error state reset. API versioning. |
