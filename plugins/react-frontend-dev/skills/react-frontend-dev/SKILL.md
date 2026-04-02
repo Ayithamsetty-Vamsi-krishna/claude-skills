@@ -1,6 +1,6 @@
 ---
 name: react-frontend-dev
-version: 1.4.0
+version: 1.4.1
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the customers feature to use the shared component library"
 ---
 
-# React Frontend Dev Skill — v1.4.0
+# React Frontend Dev Skill — v1.4.1
 
 You are a senior React + TypeScript engineer. Follow this skill precisely.
 

@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.1] — 2026-04-02 — Bug Fixes
+
+### Fixed (Bugs — broken patterns causing immediate failures)
+- **B1/T1:** `conftest.py` was missing all model fixtures (`customer`, `product`, `order`). Added full `factory_boy` pattern — `core/factories.py` (UserFactory), per-app `tests/factories.py`, project-level `conftest.py`, and app-level `conftest.py` fixtures
+- **B2:** Frontend error mock used wrong shape `{ customerId: ['Required'] }`. Now uses correct `{ success: false, message, errors }` via `mockApiError()` helper in `src/test/mocks.ts`
+- **B3:** `renderWithStore` was hardcoded to `{ orders: ordersReducer }`. Now generic — accepts `reducers` and `preloadedState` as params
+- **B4:** `index.ts` was exporting selectors from `ordersSlice` — should export from `selectors.ts` (added in v1.4.0)
+- **B5:** `components.md` list component used inline selector `useAppSelector(s => s.orders)` — violates v1.4.0 rule. Fixed to use `selectOrders` from `selectors.ts`
+- **B6:** `components.md` `useEffect` had no `promise.abort()` cleanup — violates v1.4.0 rule. Fixed
+- **B7:** Form catch block cast error as `Record<string, string[]>` — wrong. Now uses `isApiError()` type guard with correct `ApiError` shape
+- **B8/G2:** `models.md` project structure was stale — missing `core/serializers.py`, `core/permissions.py`, `core/factories.py`, `conftest.py`, `pytest.ini`, `requirements.txt`
+
+### Added (Missing test coverage)
+- **T1:** `factory_boy` pattern — `DjangoModelFactory` + `Faker` for all models; fixtures use factories
+- **T2:** `dodolete` child tests — verifies soft-delete (not hard-delete), new child creation, existing child update
+- **T3:** `GetPermission` tests — user with permission (200), without (403), superuser bypass (200)
+- **T4:** Serializer unit tests — `validate_<field>` and `validate()` tested directly without API call
+- **T5:** Zod rejection test — malformed API response handled and error shown
+- **T6:** `@pytest.mark.parametrize` — negative payload cases now tested in one parametrized block
+- **T7:** `FilteredListSerializer` test — verifies soft-deleted children excluded from GET response
+- **T8:** `userEvent` replaces `fireEvent` throughout frontend tests — simulates real browser behaviour
+- **T9:** Selector unit tests — all selectors tested in isolation including memoization verification
+- **T10:** Project-level `conftest.py` — shared fixtures (`api_client`, `user`, `superuser`, `authenticated_client`, `superuser_client`) available to all apps
+
+### Added (Other gaps)
+- **G1:** `requirements.txt` pattern with section comments (Core Django, Testing, Development, Validation)
+- **G3:** `pytest.ini` template at project root — required for `pytest-django` to find settings
+- **G4:** `__init__.py` noted as required in every `tests/` folder for test discovery
+- **G5:** `StatusBadge` import added to list component pattern (was used but never imported)
+- `isApiError` type guard strengthened — now checks `success`, `message`, AND `errors` fields
+- `mockApiError()` test helper added to `src/test/mocks.ts`
+- Error response shape tests added — 401 and 404 verify `{ success, message, errors }` contract
+
 ## [1.4.0] — 2026-04-02
 
 ### Fixed

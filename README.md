@@ -115,7 +115,8 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
-| v1.4.0 | Fixed child hard-delete bug → dodelete soft-delete pattern. `FilteredListSerializer`. `@transaction.atomic`. `SerializerMethodField` guidance. `GetPermission` factory. `selectors.ts` with `createSelector`. `dispatch().abort()` cleanup. Error state reset. API versioning reference. |
+| v1.4.1 | **Bug fixes:** Broken conftest.py, wrong error mock shape, hardcoded renderWithStore, selectors from wrong file, missing abort() cleanup, wrong catch type, stale project structure. Added: factory_boy, dodelete tests, GetPermission tests, serializer unit tests, Zod tests, parametrize, FilteredListSerializer tests, userEvent, selector tests, pytest.ini, requirements.txt. |
+| v1.4.0 | Fixed child hard-delete bug. FilteredListSerializer. @transaction.atomic. SerializerMethodField. GetPermission. selectors.ts. dispatch().abort(). Error state reset. API versioning. |
 | v1.3.0 | Standardised error response. CLAUDE.md auto-generation. Serializer validation. Env vars with python-decouple. Feature `index.ts` exports. Zod runtime validation. Git commit suggestions. `__str__` enforcement. |
 | v1.2.0 | Split into 3 skills. Conditional reference loading. Split reference files. Templates in assets/. Example prompts. `compatibility` frontmatter. |
 | v1.1.0 | PDF PRD extraction. Codebase analysis agent. |

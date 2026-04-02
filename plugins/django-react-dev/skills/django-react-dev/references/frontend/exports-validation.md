@@ -23,13 +23,16 @@ export {
   clearError,
 } from './ordersSlice'
 
-// Selectors
+// Selectors — from selectors.ts, NOT from ordersSlice — #B4 fix
 export {
   selectOrders,
   selectSelectedOrder,
   selectOrdersLoading,
   selectOrdersError,
-} from './ordersSlice'
+  selectTotalCount,
+  selectOrderById,
+  selectPendingOrders,
+} from './selectors'
 
 // Service
 export { ordersService } from './ordersService'
@@ -155,35 +158,33 @@ If Zod is not already in the project, add it as the first frontend sub-task.
 
 ---
 
-## API Error Type (update api.ts)
-
-Add standardised error type matching the backend's custom exception handler:
+## API Error Type & Type Guard (src/types/index.ts)
 
 ```typescript
 // src/types/index.ts
+
 export interface ApiError {
   success: false
   message: string
   errors: Record<string, string[]>
 }
 
-// Type guard
+// Type guard — use in all catch blocks
 export const isApiError = (error: unknown): error is ApiError =>
   typeof error === 'object' &&
   error !== null &&
   'success' in error &&
-  (error as ApiError).success === false
-```
+  (error as ApiError).success === false &&
+  'message' in error &&
+  'errors' in error
 
-Use in components:
-```typescript
-} catch (err: unknown) {
-  if (isApiError(err)) {
-    // Map field errors from { field: ["msg"] } to form state
-    setErrors(Object.fromEntries(
-      Object.entries(err.errors).map(([k, v]) => [k, v[0]])
-    ))
-    toast({ title: err.message, variant: 'destructive' })
-  }
-}
+// Usage in components:
+// } catch (err: unknown) {
+//   if (isApiError(err)) {
+//     setErrors(Object.fromEntries(
+//       Object.entries(err.errors).map(([k, v]) => [k, v[0]])
+//     ))
+//     toast({ title: err.message, variant: 'destructive' })
+//   }
+// }
 ```

@@ -1,6 +1,6 @@
 ---
 name: django-backend-dev
-version: 1.4.0
+version: 1.4.1
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the user app to use DRF Generics instead of APIView"
 ---
 
-# Django Backend Dev Skill — v1.4.0
+# Django Backend Dev Skill — v1.4.1
 
 You are a senior Django REST Framework engineer. Follow this skill precisely.
 

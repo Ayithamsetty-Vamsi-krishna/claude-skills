@@ -7,23 +7,44 @@
 - `displayName` set on all memoized components
 - No `any` TypeScript types
 - Every component handles: loading state, error state, empty state
+- ALWAYS use selectors from `selectors.ts` — never inline `state => state.x.y`
+- ALWAYS return `promise.abort()` from data-fetching `useEffect`
+- ALWAYS use `ApiError` type in catch blocks — never cast to `Record<string, string[]>`
 
-## List Component Pattern
+---
+
+## List Component Pattern — #B5 #B6 fixed
+
 ```tsx
 import React, { useEffect, useMemo, useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { fetchOrders, setSelectedOrder } from '../ordersSlice'
-import { DataTable, PageHeader, Button, EmptyState, LoadingSpinner, ErrorBanner } from '@/components/shared'
+import {
+  selectOrders, selectOrdersLoading, selectOrdersError   // ← from selectors.ts, not inline
+} from '../selectors'
+import {
+  DataTable, PageHeader, Button, EmptyState,
+  LoadingSpinner, ErrorBanner, StatusBadge              // ← ALL from shared
+} from '@/components/shared'
 import type { Order } from '../types'
+import type { ApiError } from '@/types'
 
 export const OrderList = React.memo(() => {
   const dispatch = useAppDispatch()
-  const { orders, loading, error } = useAppSelector(s => s.orders)
 
-  useEffect(() => { dispatch(fetchOrders()) }, [dispatch])
+  // ✅ Always from selectors.ts — never inline
+  const orders = useAppSelector(selectOrders)
+  const loading = useAppSelector(selectOrdersLoading)
+  const error = useAppSelector(selectOrdersError)
+
+  useEffect(() => {
+    const promise = dispatch(fetchOrders())
+    // ✅ Always abort on unmount — prevents stale state updates
+    return () => { promise.abort() }
+  }, [dispatch])
 
   const columns = useMemo(() => [
-    { key: 'id', header: 'ID', render: (r: Order) => r.id.slice(0,8) },
+    { key: 'id', header: 'ID', render: (r: Order) => r.id.slice(0, 8) },
     { key: 'status', header: 'Status', render: (r: Order) => <StatusBadge status={r.status} /> },
     { key: 'amount', header: 'Amount', render: (r: Order) => r.totalAmount },
   ], [])
@@ -42,6 +63,7 @@ export const OrderList = React.memo(() => {
         columns={columns}
         data={orders}
         keyExtractor={r => r.id}
+        onRowClick={handleSelect}
         emptyTitle="No orders yet"
         emptyDescription="Create your first order to get started."
       />
@@ -51,13 +73,17 @@ export const OrderList = React.memo(() => {
 OrderList.displayName = 'OrderList'
 ```
 
-## Form Component Pattern
+---
+
+## Form Component Pattern — #B7 fixed
+
 ```tsx
 import React, { useState, useCallback } from 'react'
 import { useAppDispatch } from '@/app/hooks'
 import { createOrder } from '../ordersSlice'
-import { Button, FormField, ErrorBanner } from '@/components/shared'
+import { Button, FormField } from '@/components/shared'
 import { useToast } from '@/components/ui/use-toast'
+import { isApiError } from '@/types'    // ← type guard for ApiError
 import type { CreateOrderPayload } from '../types'
 
 interface Props { onSuccess?: () => void }
@@ -70,7 +96,8 @@ export const OrderForm = React.memo<Props>(({ onSuccess }) => {
 
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsSubmitting(true); setErrors({})
+    setIsSubmitting(true)
+    setErrors({})
     const fd = new FormData(e.currentTarget)
     const payload: CreateOrderPayload = {
       customerId: fd.get('customerId') as string,
@@ -80,14 +107,24 @@ export const OrderForm = React.memo<Props>(({ onSuccess }) => {
     }
     try {
       await dispatch(createOrder(payload)).unwrap()
-      toast({ title: 'Order created' })
+      toast({ title: 'Order created successfully' })
       onSuccess?.()
     } catch (err: unknown) {
-      const apiErr = err as Record<string, string[]>
-      setErrors(Object.fromEntries(
-        Object.entries(apiErr).map(([k,v]) => [k, Array.isArray(v) ? v[0] : String(v)])))
-      toast({ title: 'Failed to create order', variant: 'destructive' })
-    } finally { setIsSubmitting(false) }
+      // ✅ Always use ApiError shape — { success, message, errors }
+      if (isApiError(err)) {
+        // Map field-level errors to form state
+        const fieldErrors: Record<string, string> = {}
+        Object.entries(err.errors).forEach(([field, messages]) => {
+          fieldErrors[field] = Array.isArray(messages) ? messages[0] : String(messages)
+        })
+        setErrors(fieldErrors)
+        toast({ title: err.message, variant: 'destructive' })
+      } else {
+        toast({ title: 'An unexpected error occurred', variant: 'destructive' })
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }, [dispatch, onSuccess, toast])
 
   return (
@@ -101,7 +138,10 @@ export const OrderForm = React.memo<Props>(({ onSuccess }) => {
 OrderForm.displayName = 'OrderForm'
 ```
 
+---
+
 ## Memoization Rules
+
 ```tsx
 // ✅ Correct
 const handleSubmit = useCallback(async () => {
@@ -109,9 +149,16 @@ const handleSubmit = useCallback(async () => {
 }, [dispatch, payload])
 
 const sorted = useMemo(
-  () => [...orders].sort((a,b) => a.createdAt.localeCompare(b.createdAt)),
-  [orders])
+  () => [...orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+  [orders]
+)
 
 // ❌ Wrong — creates new function reference every render
 <Child onClick={() => dispatch(someAction())} />
+
+// ❌ Wrong — inline selector causes unnecessary re-renders
+const orders = useAppSelector(state => state.orders.orders)
+
+// ✅ Correct — memoized selector from selectors.ts
+const orders = useAppSelector(selectOrders)
 ```

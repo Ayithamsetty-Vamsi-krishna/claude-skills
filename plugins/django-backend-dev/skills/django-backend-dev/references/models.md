@@ -3,22 +3,37 @@
 ## Project Structure
 ```
 backend/
-├── config/settings/{base,development,production}.py
-├── core/
-│   ├── models.py      # BaseModel (abstract)
-│   ├── mixins.py      # AuditMixin, SoftDeleteMixin
-│   ├── pagination.py
-│   ├── permissions.py
-│   └── exceptions.py
-└── <app>/
-    ├── migrations/
-    ├── models.py
-    ├── serializers.py
-    ├── views.py
-    ├── urls.py
-    ├── filters.py
-    ├── admin.py
-    └── tests/
+├── config/
+│   ├── settings/
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
+│   ├── urls.py
+│   └── wsgi.py
+├── core/                        # Shared — never add business logic here
+│   ├── models.py                # BaseModel (abstract)
+│   ├── mixins.py                # AuditMixin, SoftDeleteMixin
+│   ├── serializers.py           # FilteredListSerializer
+│   ├── permissions.py           # GetPermission factory
+│   ├── pagination.py            # DefaultPagination
+│   ├── exceptions.py            # custom_exception_handler
+│   └── factories.py             # Base test factories (UserFactory etc.)
+├── <app>/
+│   ├── migrations/
+│   ├── models.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── filters.py
+│   ├── admin.py
+│   └── tests/
+│       ├── __init__.py          # required for test discovery
+│       ├── factories.py         # app-level factory_boy factories
+│       ├── test_serializers.py  # serializer unit tests
+│       └── test_views.py        # API integration tests
+├── conftest.py                  # project-level shared fixtures
+├── pytest.ini                   # pytest + Django settings config
+└── requirements.txt             # all deps with section comments
 ```
 
 ## BaseModel (core/models.py)

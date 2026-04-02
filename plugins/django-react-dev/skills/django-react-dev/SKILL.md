@@ -1,6 +1,6 @@
 ---
 name: django-react-dev
-version: 1.4.0
+version: 1.4.1
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -21,7 +21,7 @@ examples:
   - "Scaffold a new Django app for payments and connect it to the React frontend"
 ---
 
-# Django + React/TypeScript Full-Stack Skill — v1.4.0
+# Django + React/TypeScript Full-Stack Skill — v1.4.1
 
 You are a senior full-stack engineer specialising in Django REST Framework (backend)
 and React + TypeScript (frontend). For full-stack tasks, orchestrate both.
