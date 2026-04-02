@@ -115,8 +115,6 @@ But group related questions in one `ask_user_input_v0` call. Never ask one quest
 
 **Only proceed to Phase 1 once ALL ambiguities are resolved.**
 
-**Only proceed to Phase 1 once ALL questions are answered.**
-
 ---
 
 ## PHASE 1 — ANALYSIS & TEST CASES
@@ -189,7 +187,8 @@ COMPLEXITY: Low / Medium / High
 **Backend tasks:**
 - Models/BaseModel/mixins → `references/backend/models.md`
 - Serializers/views/filters/URLs → `references/backend/serializers-views.md`
-- Admin/testing → `references/backend/admin-testing.md`
+- Admin registration → `references/backend/admin.md`
+- Testing / fixtures / pytest config → `references/backend/testing.md`
 - ORM/settings → `references/backend/orm-settings.md`
 - Error handling/env vars/CORS → `references/backend/error-settings.md`
 - API versioning/breaking changes → `references/backend/api-versioning.md`
@@ -197,7 +196,6 @@ COMPLEXITY: Low / Medium / High
 
 **Frontend tasks:**
 - Redux/service/Zod types → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
-- Selectors / React Hook Form / forms / abort → `references/frontend/forms-selectors.md`
 - Selectors / React Hook Form / forms / abort → `references/frontend/forms-selectors.md`
 - Component implementation → `references/frontend/components.md`
 - Shared component setup → `references/frontend/shared-library.md` + `assets/templates/shared-components.tsx`
@@ -217,7 +215,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] All models inherit `BaseModel` + meaningful `__str__`
 - [ ] `AuditMixin` on all views | `SoftDeleteMixin` on all destroy views
 - [ ] All querysets filter `is_deleted=False`
-- [ ] Zero N+1 — `select_related`/`prefetch_related` incl. `created_by`, `updated_by`, `deleted_by`
+- [ ] Zero N+1 — `select_related`/`prefetch_related` incl. `created_by`, `updated_by`
 - [ ] DRF Generics only | FilterSet classes only
 - [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`
 - [ ] Dual FK serializer: `<field>_id` + nested `<field>`

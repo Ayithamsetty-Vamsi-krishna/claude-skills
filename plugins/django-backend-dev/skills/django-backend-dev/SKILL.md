@@ -180,7 +180,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] All views use `AuditMixin` — `created_by`/`updated_by` auto-filled
 - [ ] All destroy views use `SoftDeleteMixin` — no `.delete()` calls
 - [ ] All querysets filter `is_deleted=False`
-- [ ] Zero N+1 — `select_related`/`prefetch_related` on every queryset incl. `created_by`, `updated_by`, `deleted_by`
+- [ ] Zero N+1 — `select_related`/`prefetch_related` on every queryset incl. `created_by`, `updated_by`
 - [ ] DRF Generics only — no APIView
 - [ ] FilterSet classes only — no raw query params
 - [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`

@@ -1,7 +1,7 @@
 # Backend: ORM Optimisation & Settings
 
 ## ORM Rules (Zero N+1 Tolerance)
-1. `select_related` — every FK/OneToOne accessed in serializer (always include `created_by`, `updated_by`, `deleted_by`)
+1. `select_related` — every FK/OneToOne accessed in serializer (always include `created_by`, `updated_by`)
 2. `prefetch_related` — every reverse FK or M2M
 3. `annotate()` — computed fields; never loop and query
 4. `only()` / `defer()` — large models where subset of fields needed
