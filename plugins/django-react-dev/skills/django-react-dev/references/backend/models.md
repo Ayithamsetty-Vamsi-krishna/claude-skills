@@ -45,12 +45,19 @@ from django.conf import settings
 
 class BaseModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Audit fields — auto-filled via AuditMixin / SoftDeleteMixin in views
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
         on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_created')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
         on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_updated')
+    deleted_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_deleted')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Soft delete fields
     is_deleted = models.BooleanField(default=False, db_index=True)
     is_active = models.BooleanField(default=True, db_index=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -66,17 +73,28 @@ from rest_framework.response import Response
 from rest_framework import status
 
 class SoftDeleteMixin:
+    """
+    Soft deletes via is_deleted=True, is_active=False, deleted_at=now(), deleted_by=request.user.
+    NEVER calls instance.delete() — no hard deletes anywhere.
+    """
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.is_active = False
         instance.deleted_at = timezone.now()
-        instance.save(update_fields=['is_deleted','is_active','deleted_at','updated_at'])
+        instance.deleted_by = self.request.user
+        instance.save(update_fields=[
+            'is_deleted', 'is_active', 'deleted_at', 'deleted_by', 'updated_at'
+        ])
 
     def destroy(self, request, *args, **kwargs):
         self.perform_destroy(self.get_object())
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class AuditMixin:
+    """
+    Auto-fills created_by + updated_by on create.
+    Auto-fills updated_by on update.
+    """
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, updated_by=self.request.user)
 

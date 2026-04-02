@@ -1,13 +1,21 @@
 # Backend: ORM Optimisation & Settings
 
 ## ORM Rules (Zero N+1 Tolerance)
-1. `select_related` — every FK/OneToOne accessed in serializer (always include `created_by`, `updated_by`)
+1. `select_related` — every FK/OneToOne accessed in serializer (always include `created_by`, `updated_by`, `deleted_by`)
 2. `prefetch_related` — every reverse FK or M2M
 3. `annotate()` — computed fields; never loop and query
 4. `only()` / `defer()` — large models where subset of fields needed
-5. `bulk_create()` / `bulk_update()` — batch ops; never loop `.save()`
-6. `exists()` — boolean checks, not `count() > 0`
-7. Always filter `is_deleted=False` first in every `get_queryset()`
+5. `exists()` — boolean checks, not `count() > 0`
+6. Always filter `is_deleted=False` first in every `get_queryset()`
+
+### ⚠️ Do NOT use `bulk_create()` / `bulk_update()` for nested children
+`bulk_create` bypasses Django's `save()` method, `pre_save` and `post_save` signals.
+This breaks any model-level code generation (e.g. unique sequential codes like `ORD-0001`),
+custom `save()` overrides, and audit field population.
+
+**Always use individual `Model.objects.create()` calls in nested serializer `create()` and `update()`.**
+
+`bulk_create` is only acceptable for truly standalone batch imports with no signals, no custom save logic, and no code generation — and must be explicitly approved per use case.
 
 ## Profiling Tools (development only)
 `requirements/development.txt`:

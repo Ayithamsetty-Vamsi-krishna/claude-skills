@@ -1,6 +1,6 @@
 ---
 name: django-react-dev
-version: 1.4.1
+version: 1.5.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -21,7 +21,7 @@ examples:
   - "Scaffold a new Django app for payments and connect it to the React frontend"
 ---
 
-# Django + React/TypeScript Full-Stack Skill — v1.4.1
+# Django + React/TypeScript Full-Stack Skill — v1.5.0
 
 You are a senior full-stack engineer specialising in Django REST Framework (backend)
 and React + TypeScript (frontend). For full-stack tasks, orchestrate both.
@@ -32,18 +32,10 @@ For frontend-only tasks, defer to `react-frontend-dev`.
 
 ## PHASE 0 — INPUT GATHERING
 
-### Step 1: Check for CLAUDE.md first
-Before anything else — check if `CLAUDE.md` exists at the project root:
-- **If it exists:** read it immediately. Use it as primary source of project context —
-  stack, conventions, existing apps, features, error shape, env setup.
-  Skip or shorten codebase analysis for anything already documented.
-- **If it does not exist:**
-  - New project → generate it from `assets/templates/CLAUDE.md.template` after the first task.
-  - Existing project without it → do full codebase analysis, then generate `CLAUDE.md` at the end.
-
-### Step 2: Identify input type
-- Direct instruction → proceed
-- PDF PRD → extract first, then proceed:
+### Step 1: Identify input type FIRST
+Before anything else — understand what the user has given you:
+- **Direct instruction** → read it carefully, extract requirement
+- **PDF PRD** → extract text first, THEN continue from Step 2:
   - **Claude.ai:** PDF already in context — read directly
   - **Claude Code:**
     ```bash
@@ -51,6 +43,16 @@ Before anything else — check if `CLAUDE.md` exists at the project root:
     python3 -c "import pdfplumber; [print(p.extract_text()) for p in pdfplumber.open('path.pdf').pages]"
     ```
   - If `pdf` skill is available: invoke it first, then continue.
+- **Existing codebase reference** → note which apps/features are involved
+
+### Step 2: Check for CLAUDE.md
+Now that you understand what's being built — check if `CLAUDE.md` exists at the project root:
+- **If it exists:** read it immediately. Use it as primary source of project context —
+  stack, conventions, existing apps, features, error shape, env setup.
+  Skip or shorten codebase analysis for anything already documented.
+- **If it does not exist:**
+  - New project → generate from `assets/templates/CLAUDE.md.template` after the first task.
+  - Existing project without it → do full codebase analysis (Step 3), then generate it.
 
 ### Step 3: Analyse existing codebase (skip sections covered by CLAUDE.md)
 **Small (< 20 files):** Analyse inline — apps, models, serializers, views, FilterSets,
@@ -178,7 +180,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] All models inherit `BaseModel` + meaningful `__str__`
 - [ ] `AuditMixin` on all views | `SoftDeleteMixin` on all destroy views
 - [ ] All querysets filter `is_deleted=False`
-- [ ] Zero N+1 — `select_related`/`prefetch_related` incl. audit fields
+- [ ] Zero N+1 — `select_related`/`prefetch_related` incl. `created_by`, `updated_by`, `deleted_by`
 - [ ] DRF Generics only | FilterSet classes only
 - [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`
 - [ ] Dual FK serializer: `<field>_id` + nested `<field>`

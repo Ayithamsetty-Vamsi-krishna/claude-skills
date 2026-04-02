@@ -175,6 +175,24 @@ describe('OrderList', () => {
     renderOrderList()
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })
+
+  // 🔁 Abort on unmount — no stale state update — #T9 useEffect abort
+  it('aborts request on unmount without console errors', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    let resolveRequest!: (v: any) => void
+    vi.spyOn(service.ordersService, 'getAll').mockImplementation(
+      () => new Promise(resolve => { resolveRequest = resolve })
+    )
+    const { unmount } = renderOrderList()
+    unmount()   // unmount BEFORE request resolves
+    resolveRequest({ count: 0, next: null, previous: null, results: [] })
+    await new Promise(r => setTimeout(r, 50))
+    // No "Can't perform state update on unmounted component" warnings
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("Can't perform")
+    )
+    errorSpy.mockRestore()
+  })
 })
 ```
 

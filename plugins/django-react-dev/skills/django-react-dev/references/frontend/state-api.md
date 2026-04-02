@@ -291,3 +291,98 @@ const handleRetry = useCallback(() => {
 ```
 
 Add to the review checklist: every `pending` case in `extraReducers` sets `error: null`.
+
+---
+
+## React Hook Form + Zod for Forms
+
+Install: `npm install react-hook-form @hookform/resolvers`
+
+**Never use raw `FormData` for form input.** Connect Zod schemas (already in `types.ts`) directly to React Hook Form — single source of truth for validation.
+
+```typescript
+// src/features/orders/types.ts
+// Write payload schema — used for BOTH API validation AND form validation
+export const CreateOrderSchema = z.object({
+  customerId: z.string().uuid({ message: 'Please select a valid customer' }),
+  totalAmount: z.string().min(1, 'Amount is required').refine(
+    val => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+    { message: 'Amount must be greater than zero' }
+  ),
+  notes: z.string().optional(),
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    quantity: z.number().int().positive(),
+    unitPrice: z.string(),
+  })).min(1, 'At least one item is required'),
+})
+
+// Infer TypeScript type from schema — no duplication
+export type CreateOrderPayload = z.infer<typeof CreateOrderSchema>
+```
+
+```tsx
+// Form component with React Hook Form + Zod
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { CreateOrderSchema } from '../types'
+import type { CreateOrderPayload } from '../types'
+
+export const OrderForm = React.memo<{ onSuccess?: () => void }>(({ onSuccess }) => {
+  const dispatch = useAppDispatch()
+  const { toast } = useToast()
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateOrderPayload>({
+    resolver: zodResolver(CreateOrderSchema),   // ← Zod schema drives validation
+    defaultValues: { notes: '', items: [] },
+  })
+
+  const onSubmit = useCallback(async (data: CreateOrderPayload) => {
+    try {
+      await dispatch(createOrder(data)).unwrap()
+      toast({ title: 'Order created successfully' })
+      onSuccess?.()
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        // Map API field errors back to React Hook Form
+        Object.entries(err.errors).forEach(([field, messages]) => {
+          setError(field as keyof CreateOrderPayload, {
+            type: 'server',
+            message: messages[0],
+          })
+        })
+        toast({ title: err.message, variant: 'destructive' })
+      }
+    }
+  }, [dispatch, onSuccess, toast, setError])
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <FormField
+        label="Customer"
+        {...register('customerId')}
+        error={errors.customerId?.message}
+      />
+      <FormField
+        label="Total Amount"
+        type="number"
+        {...register('totalAmount')}
+        error={errors.totalAmount?.message}
+      />
+      <Button type="submit" loading={isSubmitting}>Create Order</Button>
+    </form>
+  )
+})
+OrderForm.displayName = 'OrderForm'
+```
+
+**Rules:**
+- ALWAYS use `zodResolver` — never write manual validation logic
+- Zod schema in `types.ts` is used for BOTH API response validation AND form validation
+- Map server-side `ApiError.errors` back to form fields via `setError` after failed submit
+- `isSubmitting` from `useForm` replaces manual `useState(false)` for loading state

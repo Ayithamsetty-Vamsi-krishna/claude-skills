@@ -53,7 +53,7 @@ DJANGO_SETTINGS_MODULE = config.settings.development
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = -v --tb=short
+addopts = -v --tb=short --cov=. --cov-report=term-missing --cov-fail-under=80
 ```
 
 ---
@@ -74,22 +74,20 @@ psycopg2-binary>=2.9
 # ── Testing ───────────────────────────────────
 pytest>=8.0
 pytest-django>=4.8
+pytest-cov>=5.0
 factory-boy>=3.3
 Faker>=24.0
 
 # ── Development only ──────────────────────────
 django-silk>=5.1
 django-debug-toolbar>=4.3
-
-# ── Validation ────────────────────────────────
-# (add as needed per project)
-# pydantic>=2.0
 ```
 
 ---
 
 ## Project-level conftest.py (backend root) — #G4, #T10
 Shared fixtures used by ALL apps. Lives at project root, NOT inside any app.
+Cross-app fixtures are re-exported here so any app test can use them without importing.
 
 ```python
 # conftest.py  ← project root
@@ -131,7 +129,29 @@ def superuser_client(api_client, superuser):
     """APIClient force-authenticated as superuser."""
     api_client.force_authenticate(user=superuser)
     return api_client, superuser
+
+
+# ── Cross-app fixture re-exports ──────────────────────────────────────────────
+# Re-export fixtures from other apps so any test can use them without importing.
+# Add new cross-app fixtures here as the project grows.
+# Example: orders tests need customer and product from other apps.
+
+@pytest.fixture
+def customer(db, user):
+    """Re-exported from customers app — available to all test files."""
+    from customers.tests.factories import CustomerFactory
+    return CustomerFactory(created_by=user, updated_by=user)
+
+
+@pytest.fixture
+def product(db, user):
+    """Re-exported from products app — available to all test files."""
+    from products.tests.factories import ProductFactory
+    return ProductFactory(created_by=user, updated_by=user)
 ```
+
+**Rule:** Any fixture used across more than one app MUST be re-exported from project-level `conftest.py`.
+Never import fixtures directly from another app's test folder.
 
 ---
 
@@ -388,15 +408,16 @@ class TestOrderListCreate:
 @pytest.mark.django_db
 class TestOrderSoftDelete:
 
-    # 🗑️ DELETE sets flags, not hard delete
+    # 🗑️ DELETE sets flags, not hard delete — and fills deleted_by
     def test_destroy_soft_deletes(self, authenticated_client, order):
-        client, _ = authenticated_client
+        client, user = authenticated_client
         r = client.delete(reverse('orders:order-detail', args=[order.id]))
         assert r.status_code == 204
         order.refresh_from_db()
         assert order.is_deleted is True
         assert order.is_active is False
         assert order.deleted_at is not None
+        assert order.deleted_by == user        # ← deleted_by filled, not updated_by
 
     # 🗑️ Deleted record returns 404 on detail
     def test_deleted_returns_404(self, authenticated_client, deleted_order):
@@ -442,29 +463,68 @@ class TestOrderDodeleChildren:
 
 @pytest.mark.django_db
 class TestGetPermission:
+    """
+    Tests target a view using GetPermission('orders.view_order'), NOT IsAuthenticated.
+    Ensure 'orders:order-list-protected' URL uses GetPermission in permission_classes.
+    """
 
-    # 🔒 User with permission gets 200 — #T3
+    # 🔒 User WITH correct permission → 200
     def test_user_with_permission_allowed(self, api_client, user):
         from django.contrib.contenttypes.models import ContentType
         from django.contrib.auth.models import Permission
+        from orders.models import Order
         ct = ContentType.objects.get_for_model(Order)
         perm = Permission.objects.get(content_type=ct, codename='view_order')
         user.user_permissions.add(perm)
+        user = user.__class__.objects.get(pk=user.pk)   # clear permission cache
         api_client.force_authenticate(user=user)
-        r = api_client.get(reverse('orders:order-list-create'))
+        r = api_client.get(reverse('orders:order-list-protected'))
         assert r.status_code == 200
 
-    # 🔒 User without permission gets 403 — #T3
+    # 🔒 User WITHOUT permission → 403
     def test_user_without_permission_forbidden(self, api_client, user):
         api_client.force_authenticate(user=user)
-        r = api_client.get(reverse('orders:order-list-create'))
+        r = api_client.get(reverse('orders:order-list-protected'))
         assert r.status_code == 403
 
-    # 🔒 Superuser bypasses all permission checks — #T3
+    # 🔒 Superuser bypasses all GetPermission checks → 200
     def test_superuser_always_allowed(self, superuser_client):
         client, _ = superuser_client
-        r = client.get(reverse('orders:order-list-create'))
+        r = client.get(reverse('orders:order-list-protected'))
         assert r.status_code == 200
+
+    # 🔒 Unauthenticated → 401 (not 403)
+    def test_unauthenticated_gets_401(self, api_client):
+        r = api_client.get(reverse('orders:order-list-protected'))
+        assert r.status_code == 401
+
+
+@pytest.mark.django_db
+class TestOrderFilters:
+
+    # 🔍 FilterSet parametrize — all filter fields tested in one block
+    @pytest.mark.parametrize('filter_params,expected_count', [
+        ({'status': 'pending'}, 2),
+        ({'status': 'confirmed'}, 1),
+        ({'status': 'cancelled'}, 0),
+        ({'status': 'invalid_value'}, 0),
+        ({'customer_name': 'acme'}, 2),
+        ({'customer_name': 'nonexistent'}, 0),
+        ({}, 3),  # no filter — all active records
+    ])
+    def test_filters(self, authenticated_client, user, filter_params, expected_count):
+        from .factories import OrderFactory
+        from customers.tests.factories import CustomerFactory
+        acme = CustomerFactory(name='Acme Corp', created_by=user, updated_by=user)
+        other = CustomerFactory(name='Other Co', created_by=user, updated_by=user)
+        OrderFactory(status='pending', customer=acme, created_by=user, updated_by=user)
+        OrderFactory(status='pending', customer=acme, created_by=user, updated_by=user)
+        OrderFactory(status='confirmed', customer=other, created_by=user, updated_by=user)
+
+        client, _ = authenticated_client
+        r = client.get(reverse('orders:order-list-create'), filter_params)
+        assert r.status_code == 200
+        assert r.data['count'] == expected_count
 
 
 @pytest.mark.django_db

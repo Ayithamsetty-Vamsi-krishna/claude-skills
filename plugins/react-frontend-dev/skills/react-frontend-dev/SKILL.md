@@ -1,6 +1,6 @@
 ---
 name: react-frontend-dev
-version: 1.4.1
+version: 1.5.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the customers feature to use the shared component library"
 ---
 
-# React Frontend Dev Skill — v1.4.1
+# React Frontend Dev Skill — v1.5.0
 
 You are a senior React + TypeScript engineer. Follow this skill precisely.
 
@@ -28,18 +28,21 @@ You are a senior React + TypeScript engineer. Follow this skill precisely.
 
 ## PHASE 0 — INPUT GATHERING
 
-### Step 1: Check for CLAUDE.md first
-Before anything else — check if `CLAUDE.md` exists at the project root:
+### Step 1: Identify input type FIRST
+Before anything else — understand what the user has given you:
+- **Direct instruction** → read it carefully, extract requirement
+- **PDF PRD** → extract text first, THEN proceed:
+  - Claude.ai: PDF already in context — read directly
+  - Claude Code: `pdftotext path.pdf -`
+- **Existing codebase reference** → note which features/components are involved
+
+### Step 2: Check for CLAUDE.md
+Now check if `CLAUDE.md` exists at the project root:
 - **If it exists:** read it first. Use it as primary context for stack, conventions,
   existing features, shared components, and API error shape.
-  Skip or shorten codebase analysis accordingly.
+  Skip or shorten codebase analysis for anything already documented.
 - **If it does not exist:** flag this to the user — suggest running `django-react-dev`
   or `django-backend-dev` first to generate it.
-
-### Step 2: Identify input type
-- Direct instruction → proceed
-- PDF PRD → Claude.ai: read directly | Claude Code: `pdftotext path.pdf -`
-- Existing codebase → analyse before planning
 
 ### Step 3: Analyse existing codebase (if CLAUDE.md absent or incomplete)
 **Small (< 20 files):** Map inline — features, store slices, shared components,

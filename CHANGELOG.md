@@ -5,6 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] — 2026-04-02
+
+### Fixed
+- **Phase 0 reordered** across all 3 skills — identify input type FIRST (extract PDF if needed), THEN check CLAUDE.md. Previous order caused reading CLAUDE.md before understanding the requirement.
+- **`FilteredListSerializer` safety check** — now handles both queryset and pre-evaluated list. Prevents `AttributeError: 'list' object has no attribute 'filter'` in some DRF prefetch configurations.
+- **Child `update()` now uses `deleted_by`** — when soft-deleting a child via `dodelete=True`, the serializer now sets `deleted_by=request.user` (not `updated_by`). Requires `request` passed via serializer context.
+
+### Added (Backend)
+- **`deleted_by` field in `BaseModel`** — alongside `is_deleted`, `deleted_at`, `is_active`. `SoftDeleteMixin.perform_destroy` now fills `deleted_by=request.user`.
+- **`bulk_create` removed from ORM rules** — with clear warning: bypasses `save()` signals, breaks custom code generation (e.g. sequential codes like `ORD-0001`). Individual `Model.objects.create()` calls are always safer for nested children.
+- **`select_related` now explicitly includes `deleted_by`** in ORM rules alongside `created_by`, `updated_by`.
+- **Cross-app fixture re-export pattern** in project-level `conftest.py` — shared fixtures (`customer`, `product`) re-exported so any app test can use them without cross-app imports.
+- **`pytest-cov` with 80% threshold** added to `pytest.ini` and `requirements.txt`.
+- **`TestGetPermission` fixed** — tests now target a view using `GetPermission(...)`, not `IsAuthenticated`. Added `test_unauthenticated_gets_401` case.
+- **`deleted_by` verified in soft-delete test** — `assert order.deleted_by == user`.
+- **FilterSet `@pytest.mark.parametrize`** — all filter fields tested in one parametrized block.
+
+### Added (Frontend)
+- **React Hook Form + Zod for forms** — `zodResolver` connects existing Zod schemas to form validation. `setError` maps server `ApiError.errors` back to form fields. Replaces raw `FormData` pattern entirely.
+- **React Router protected route pattern** — `ProtectedRoute` component, `router.tsx` structure, route registration as mandatory sub-task for page-level features.
+- **`TableSkeleton` shared component** — skeleton loading for list/table pages. Replaces `<LoadingSpinner />` on data tables. Clear rule: TableSkeleton for tables, LoadingSpinner for full-page/button.
+- **`useEffect` abort test** — concrete test showing no state update errors after component unmounts before request resolves.
+
+### Added (Maintenance)
+- **`scripts/sync-refs.sh`** — syncs all reference files from specialist plugins to `django-react-dev` in one command. Run after every reference file edit.
+- **`scripts/bump-version.sh`** — bumps version for a specific skill across `SKILL.md`, `plugin.json`, and `marketplace.json`. Each skill versioned independently.
+- **`CONTRIBUTING.md`** — documents single source of truth rule, sync workflow, version bumping, adding new skills, pre-commit checklist.
+
 ## [1.4.1] — 2026-04-02 — Bug Fixes
 
 ### Fixed (Bugs — broken patterns causing immediate failures)

@@ -115,6 +115,7 @@ claude-skills/
 
 | Version | Notes |
 |---|---|
+| v1.5.0 | Phase 0 reordered. `deleted_by` in BaseModel + SoftDeleteMixin. `bulk_create` removed (breaks signal-based code generation). `FilteredListSerializer` safety fix. Child `deleted_by` in `update()`. React Hook Form + Zod. React Router protected routes. TableSkeleton. `useEffect` abort test. FilterSet parametrize. Cross-app fixtures. `pytest-cov` 80%. `sync-refs.sh` + `bump-version.sh` scripts. `CONTRIBUTING.md`. |
 | v1.4.1 | **Bug fixes:** Broken conftest.py, wrong error mock shape, hardcoded renderWithStore, selectors from wrong file, missing abort() cleanup, wrong catch type, stale project structure. Added: factory_boy, dodelete tests, GetPermission tests, serializer unit tests, Zod tests, parametrize, FilteredListSerializer tests, userEvent, selector tests, pytest.ini, requirements.txt. |
 | v1.4.0 | Fixed child hard-delete bug. FilteredListSerializer. @transaction.atomic. SerializerMethodField. GetPermission. selectors.ts. dispatch().abort(). Error state reset. API versioning. |
 | v1.3.0 | Standardised error response. CLAUDE.md auto-generation. Serializer validation. Env vars with python-decouple. Feature `index.ts` exports. Zod runtime validation. Git commit suggestions. `__str__` enforcement. |

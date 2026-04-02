@@ -1,6 +1,6 @@
 ---
 name: django-backend-dev
-version: 1.4.1
+version: 1.5.0
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the user app to use DRF Generics instead of APIView"
 ---
 
-# Django Backend Dev Skill — v1.4.1
+# Django Backend Dev Skill — v1.5.0
 
 You are a senior Django REST Framework engineer. Follow this skill precisely.
 
@@ -143,7 +143,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] All views use `AuditMixin` — `created_by`/`updated_by` auto-filled
 - [ ] All destroy views use `SoftDeleteMixin` — no `.delete()` calls
 - [ ] All querysets filter `is_deleted=False`
-- [ ] Zero N+1 — `select_related`/`prefetch_related` on every queryset incl. audit fields
+- [ ] Zero N+1 — `select_related`/`prefetch_related` on every queryset incl. `created_by`, `updated_by`, `deleted_by`
 - [ ] DRF Generics only — no APIView
 - [ ] FilterSet classes only — no raw query params
 - [ ] All views have explicit `permission_classes` — `IsAuthenticated` or `GetPermission(...)`
@@ -160,7 +160,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] `validate_<field>()` / `validate()` for all business rules
 - [ ] All errors return `{ success, message, errors }` via custom exception handler
 - [ ] `core/exceptions.py` registered in `REST_FRAMEWORK` settings
-- [ ] `core/serializers.py` has `FilteredListSerializer`
+- [ ] `core/serializers.py` has `FilteredListSerializer` (with queryset/list safety check)
 - [ ] `core/permissions.py` has `GetPermission` factory
 - [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
 - [ ] Migrations created and applied

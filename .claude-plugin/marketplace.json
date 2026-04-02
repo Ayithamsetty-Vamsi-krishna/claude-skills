@@ -6,35 +6,63 @@
   },
   "metadata": {
     "description": "Production-grade Claude Code skills for full-stack Django + React/TypeScript development. Enforces best practices: soft delete, audit fields, ORM optimisation, shared component library, memoization, and comprehensive testing.",
-    "version": "1.4.1"
+    "version": "1.5.0"
   },
   "plugins": [
     {
       "name": "django-react-dev",
       "source": "./plugins/django-react-dev",
-      "description": "Full-stack orchestrator — Django REST Framework + React/TypeScript. End-to-end feature development from PRD to implementation.",
-      "version": "1.4.1",
-      "author": { "name": "Ayithamsetty Vamsi Krishna" },
+      "description": "Full-stack orchestrator \u2014 Django REST Framework + React/TypeScript. End-to-end feature development from PRD to implementation.",
+      "version": "1.5.0",
+      "author": {
+        "name": "Ayithamsetty Vamsi Krishna"
+      },
       "category": "development",
-      "keywords": ["django", "react", "typescript", "drf", "fullstack", "skill"]
+      "keywords": [
+        "django",
+        "react",
+        "typescript",
+        "drf",
+        "fullstack",
+        "skill"
+      ]
     },
     {
       "name": "django-backend-dev",
       "source": "./plugins/django-backend-dev",
       "description": "Backend-only Django REST Framework skill. Models, serializers, views, filters, admin, soft delete, audit fields, ORM optimisation, pytest testing.",
-      "version": "1.4.1",
-      "author": { "name": "Ayithamsetty Vamsi Krishna" },
+      "version": "1.5.0",
+      "author": {
+        "name": "Ayithamsetty Vamsi Krishna"
+      },
       "category": "development",
-      "keywords": ["django", "drf", "backend", "api", "python", "skill"]
+      "keywords": [
+        "django",
+        "drf",
+        "backend",
+        "api",
+        "python",
+        "skill"
+      ]
     },
     {
       "name": "react-frontend-dev",
       "source": "./plugins/react-frontend-dev",
       "description": "Frontend-only React + TypeScript skill. Redux Toolkit, Axios JWT refresh, shadcn/ui, Tailwind, shared component library, memoization, Vitest testing.",
-      "version": "1.4.1",
-      "author": { "name": "Ayithamsetty Vamsi Krishna" },
+      "version": "1.5.0",
+      "author": {
+        "name": "Ayithamsetty Vamsi Krishna"
+      },
       "category": "development",
-      "keywords": ["react", "typescript", "frontend", "redux", "shadcn", "tailwind", "skill"]
+      "keywords": [
+        "react",
+        "typescript",
+        "frontend",
+        "redux",
+        "shadcn",
+        "tailwind",
+        "skill"
+      ]
     }
   ]
 }

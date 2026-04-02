@@ -11,10 +11,15 @@ from rest_framework import serializers
 class FilteredListSerializer(serializers.ListSerializer):
     """
     Filters out soft-deleted children automatically on all read operations.
+    Safe for both queryset and pre-evaluated list (handles both DRF versions).
     Used as list_serializer_class on every nested child serializer.
     """
     def to_representation(self, data):
-        data = data.filter(is_deleted=False, is_active=True)
+        # Safe check — data could be a queryset or an already-evaluated list
+        if hasattr(data, 'filter'):
+            data = data.filter(is_deleted=False, is_active=True)
+        else:
+            data = [i for i in data if not i.is_deleted and i.is_active]
         return super().to_representation(data)
 ```
 
@@ -152,6 +157,10 @@ class OrderSerializer(serializers.ModelSerializer):
         instance.save()
 
         if items_data is not None:
+            # Get request user from serializer context for audit trail
+            request = self.context.get('request')
+            request_user = request.user if request else None
+
             for item in items_data:
                 item_id = item.get('id', None)
                 dodelete = item.pop('dodelete', False)
@@ -164,23 +173,30 @@ class OrderSerializer(serializers.ModelSerializer):
                         continue
 
                     if dodelete:
-                        # Soft delete — NEVER hard delete (#1)
+                        # Soft delete — set deleted_by, NOT updated_by (#6 fix)
                         child.is_deleted = True
                         child.is_active = False
                         child.deleted_at = timezone.now()
+                        child.deleted_by = request_user  # ← correct audit field
                         child.save(update_fields=[
-                            'is_deleted', 'is_active', 'deleted_at', 'updated_at'
+                            'is_deleted', 'is_active', 'deleted_at', 'deleted_by', 'updated_at'
                         ])
                     else:
                         # Update existing child fields
                         for attr, value in item.items():
                             if attr != 'id':
                                 setattr(child, attr, value)
+                        child.updated_by = request_user
                         child.save()
                 else:
                     # New child — create only if not flagged for deletion
                     if not dodelete:
-                        OrderItem.objects.create(order=instance, **item)
+                        OrderItem.objects.create(
+                            order=instance,
+                            created_by=request_user,
+                            updated_by=request_user,
+                            **item
+                        )
 
         return instance
 ```

@@ -99,3 +99,89 @@ StatusBadge.displayName = 'StatusBadge'
 ## DataTable, Modal, PageHeader, EmptyState, LoadingSpinner, ErrorBanner
 See `assets/templates/shared-components.tsx` for full implementations.
 Load that file only when scaffolding the shared library for the first time.
+
+---
+
+## React Router — Protected Route Pattern
+
+Install: `npm install react-router-dom`
+
+Every new page feature needs a route registered here. Never add routes in feature folders.
+
+```typescript
+// src/app/router.tsx
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+
+// Protected wrapper — redirects to /login if no token
+const ProtectedRoute: React.FC = () => {
+  const token = localStorage.getItem('access_token')
+  return token ? <Outlet /> : <Navigate to="/login" replace />
+}
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <ProtectedRoute />,
+    children: [
+      { index: true, element: <Navigate to="/dashboard" replace /> },
+      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'orders', element: <OrderList /> },
+      { path: 'orders/:id', element: <OrderDetail /> },
+      // ← Add new feature routes here
+    ],
+  },
+  { path: '/login', element: <LoginPage /> },
+  { path: '*', element: <Navigate to="/" replace /> },
+])
+```
+
+**Rule:** When adding a new feature, always add the route to `router.tsx` as part of the feature task plan. This is a mandatory sub-task for any page-level component.
+
+---
+
+## TableSkeleton — Loading Skeleton Pattern
+
+Use this instead of `<LoadingSpinner />` on list/table pages. Users see the layout before data arrives.
+
+```tsx
+// src/components/shared/TableSkeleton.tsx
+import React from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
+
+interface TableSkeletonProps {
+  rows?: number
+  columns?: number
+}
+
+export const TableSkeleton = React.memo<TableSkeletonProps>(({ rows = 5, columns = 4 }) => (
+  <div className="space-y-3">
+    {/* Header row */}
+    <div className="flex gap-4">
+      {Array.from({ length: columns }).map((_, i) => (
+        <Skeleton key={i} className="h-4 flex-1 rounded" />
+      ))}
+    </div>
+    {/* Data rows */}
+    {Array.from({ length: rows }).map((_, i) => (
+      <div key={i} className="flex gap-4">
+        {Array.from({ length: columns }).map((_, j) => (
+          <Skeleton key={j} className="h-10 flex-1 rounded" />
+        ))}
+      </div>
+    ))}
+  </div>
+))
+TableSkeleton.displayName = 'TableSkeleton'
+```
+
+Add to `DataTable` component — use `TableSkeleton` not `LoadingSpinner` for table loading states:
+```tsx
+if (loading) return <TableSkeleton rows={5} columns={columns.length} />
+```
+
+Add `TableSkeleton` to `shared/index.ts` barrel export.
+
+**Rule:**
+- List/table pages → `<TableSkeleton />` for loading state
+- Full-page transitions → `<LoadingSpinner fullPage />` for loading state
+- Inline/button loading → `<LoadingSpinner className="h-4 w-4" />` inside `<Button loading>`
