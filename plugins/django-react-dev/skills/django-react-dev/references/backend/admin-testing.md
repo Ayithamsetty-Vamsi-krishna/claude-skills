@@ -429,9 +429,9 @@ class TestOrderSoftDelete:
 @pytest.mark.django_db
 class TestOrderDodeleChildren:
 
-    # 🗑️ dodolete=true soft-deletes child — #T2
+    # 🗑️ dodelete=true soft-deletes child — verifies deleted_by set correctly
     def test_dodelete_soft_deletes_child(self, authenticated_client, order_with_items):
-        client, _ = authenticated_client
+        client, user = authenticated_client   # ← capture user for deleted_by check
         item = order_with_items.items.first()
         payload = {
             'items': [{'id': str(item.id), 'dodelete': True}]
@@ -443,11 +443,13 @@ class TestOrderDodeleChildren:
         item.refresh_from_db()
         assert item.is_deleted is True
         assert item.is_active is False
-        # Must NOT be hard deleted
+        assert item.deleted_at is not None
+        assert item.deleted_by == user        # ← deleted_by filled correctly, not updated_by
+        # Must NOT be hard deleted — record still exists in DB
         from orders.models import OrderItem
         assert OrderItem.objects.filter(id=item.id).exists()
 
-    # ✅ New child created when no id and dodelete=False — #T2
+    # ✅ New child created when no id and dodelete=False
     def test_new_child_created(self, authenticated_client, order, product):
         client, _ = authenticated_client
         payload = {
