@@ -140,6 +140,32 @@ CONTEXT FROM PREVIOUS TASK:
 - Any constraints the next skill must respect
 ```
 
+### Long session checkpoint (CRITICAL for sessions with 5+ tasks)
+
+Context windows fill up. Early task details become less accessible as sessions grow.
+**Re-read CLAUDE.md at these specific trigger points — never skip this:**
+
+| Trigger | Action |
+|---|---|
+| Starting any task after 5+ completed tasks | Re-read `CLAUDE.md` before Phase 0 of the new task |
+| Switching to a new specialist skill | Re-read `CLAUDE.md` before reading the specialist SKILL.md |
+| User says "continue" or "next feature" | Re-read `CLAUDE.md` to restore full context |
+| Any task that references models/endpoints from earlier tasks | Re-read `CLAUDE.md` before writing code |
+
+**Checkpoint procedure:**
+```
+1. Read CLAUDE.md → confirm current project state
+2. Verify: do models from earlier tasks exist as expected?
+3. Verify: are auth user types and JWT claims still as documented?
+4. If CLAUDE.md is stale or incomplete → update it before proceeding
+5. THEN invoke the specialist skill
+```
+
+**If CLAUDE.md doesn't exist yet in an existing project:**
+Do not proceed with implementation. Tell the user:
+"I need to analyse the codebase and generate CLAUDE.md first so I have accurate context.
+Shall I do that now?"
+
 ---
 
 ## ROUTER REFERENCE FILES

@@ -162,3 +162,87 @@ const orders = useAppSelector(state => state.orders.orders)
 // ✅ Correct — memoized selector from selectors.ts
 const orders = useAppSelector(selectOrders)
 ```
+
+---
+
+## Error Boundary (graceful component failure)
+
+```tsx
+// src/components/shared/ErrorBoundary.tsx
+import React from 'react'
+import { ErrorBanner } from './ErrorBanner'
+
+interface Props {
+  children: React.ReactNode
+  fallback?: React.ReactNode
+  onError?: (error: Error, info: React.ErrorInfo) => void
+}
+
+interface State { hasError: boolean; error: Error | null }
+
+export class ErrorBoundary extends React.Component<Props, State> {
+  state: State = { hasError: false, error: null }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Log to Sentry
+    import('sentry-sdk').then(Sentry => Sentry.captureException(error, { extra: info }))
+    this.props.onError?.(error, info)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? (
+        <ErrorBanner message="Something went wrong. Please refresh the page." />
+      )
+    }
+    return this.props.children
+  }
+}
+
+// Usage — wrap every route-level page
+<ErrorBoundary fallback={<div>Page failed to load</div>}>
+  <OrderListPage />
+</ErrorBoundary>
+```
+
+---
+
+## Code splitting — lazy route loading
+
+```tsx
+// src/app/router.tsx — lazy load each page to reduce initial bundle
+import { lazy, Suspense } from 'react'
+import { LoadingSpinner } from '@/components/shared'
+
+// Lazy imports — each page becomes its own chunk
+const OrderList = lazy(() => import('@/features/orders/pages/OrderList'))
+const InvoiceList = lazy(() => import('@/features/invoices/pages/InvoiceList'))
+const Dashboard = lazy(() => import('@/features/dashboard/pages/Dashboard'))
+
+// Wrap lazy routes in Suspense
+const SuspenseWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<LoadingSpinner fullPage />}>{children}</Suspense>
+)
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <ProtectedRoute />,
+    children: [
+      { path: 'orders', element: <SuspenseWrapper><OrderList /></SuspenseWrapper> },
+      { path: 'invoices', element: <SuspenseWrapper><InvoiceList /></SuspenseWrapper> },
+      { path: 'dashboard', element: <SuspenseWrapper><Dashboard /></SuspenseWrapper> },
+    ],
+  },
+])
+```
+
+**Rules:**
+- Every route-level page component → lazy import
+- Every page → wrapped in ErrorBoundary
+- Shared components → NOT lazy (they're small and used everywhere)
+- Add both to Phase 4 checklist for every new page task

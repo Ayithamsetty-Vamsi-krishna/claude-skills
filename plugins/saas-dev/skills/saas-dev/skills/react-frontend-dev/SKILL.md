@@ -174,6 +174,7 @@ COMPLEXITY: Low / Medium / High
 - Infinite scroll + virtual list → `references/virtual-list.md`
 - Dark/light theme system → `references/theme-system.md`
 - Animations + transitions → `references/animations.md`
+- Error boundaries + code splitting → `references/components.md` (ErrorBoundary + lazy sections)
 - Testing → `references/testing.md`
 
 ### After each task:
@@ -210,4 +211,6 @@ COMPLEXITY: Low / Medium / High
 - [ ] Loading, error, empty states in every data-fetching component
 - [ ] Form errors from `err.errors` (field-level) | `err.message` in toast
 - [ ] Tailwind + shadcn only — no inline styles
+- [ ] Every route-level page wrapped in `<ErrorBoundary>`
+- [ ] Every route-level page is lazy-loaded (`lazy(() => import(...))`)
 - [ ] All test cases from Phase 1 implemented

@@ -134,3 +134,76 @@ Before running any migration in production:
 - [ ] Large table migrations use CONCURRENTLY index creation
 - [ ] Backup taken before applying irreversible migrations
 - [ ] Rollback plan documented (what to do if migration fails)
+
+---
+
+## Database backup before destructive migrations
+
+```bash
+# Always backup before any migration that drops columns, changes types, or modifies data
+
+# PostgreSQL backup (before running migrate)
+pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# In GitHub Actions — backup before migration step
+- name: Backup database
+  run: |
+    pg_dump ${{ secrets.DATABASE_URL }} > backup_${{ github.sha }}.sql
+    # Store in S3 or artifact
+    aws s3 cp backup_${{ github.sha }}.sql s3://your-backups/migrations/
+
+- name: Run migrations
+  run: python manage.py migrate --no-input
+```
+
+---
+
+## Rollback procedure
+
+```bash
+# If deployment fails after migrations were applied:
+
+# Step 1 — Roll back the code (revert to previous deploy)
+# Render: redeploy previous commit
+# Railway: railway rollback
+# Manual: git revert + push
+
+# Step 2 — Reverse the migration (only if backward-compatible steps were used)
+python manage.py migrate <app_name> <previous_migration_name>
+# Example: python manage.py migrate orders 0024_add_status_field
+# ⚠️ Only works if the migration has a proper reverse operation
+# ⚠️ Data migrations with RunPython need explicit reverse_code=
+
+# Step 3 — Restore from backup (if migration cannot be reversed)
+psql $DATABASE_URL < backup_20240101_120000.sql
+```
+
+### Making migrations reversible
+```python
+# Always provide reverse_code for data migrations
+class Migration(migrations.Migration):
+    operations = [
+        migrations.RunPython(
+            code=populate_priority_field,
+            reverse_code=lambda apps, schema_editor: apps.get_model('orders', 'Order')
+                .objects.all().update(priority=None)  # ← rollback: clear the field
+        )
+    ]
+```
+
+### SSL / HTTPS configuration
+```python
+# settings/production.py — enable only when SSL is confirmed working
+SECURE_SSL_REDIRECT = True           # redirect HTTP → HTTPS
+SECURE_HSTS_SECONDS = 31536000       # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+```
+```yaml
+# For Render/Railway/DO — SSL is handled at platform level (automatic)
+# For VPS — use Nginx + Certbot (Let's Encrypt):
+# sudo apt install certbot python3-certbot-nginx
+# sudo certbot --nginx -d yourdomain.com
+```

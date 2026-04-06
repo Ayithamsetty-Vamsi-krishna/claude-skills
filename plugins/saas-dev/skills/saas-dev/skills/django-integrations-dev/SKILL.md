@@ -101,8 +101,12 @@ Non-critical updates (reports, dashboards) → Polling (interval + RTK Query)
 - ❌ Provider error: API key invalid, service down → correct error shape returned
 - ❌ Validation error: invalid payload → caught before hitting provider
 - 🔒 Webhook signature verification: valid signature passes, invalid signature → 400
-- 🔁 Retry logic: transient failure retried, permanent failure logged
+- 🔁 Idempotency: same webhook event_id fired twice → processed ONCE only
+- 🔁 Retry logic: transient failure retried, permanent failure logged + dead letter
 - 📐 All errors return `{ success, message, errors }` shape
+- 📁 File uploads: MIME type validation, size limit enforcement, path traversal blocked
+- 🗄️ Cache: invalidation fires on model save, miss falls through to DB correctly
+- 🔌 Real-time: connection closes on unmount, reconnect on disconnect
 
 ---
 

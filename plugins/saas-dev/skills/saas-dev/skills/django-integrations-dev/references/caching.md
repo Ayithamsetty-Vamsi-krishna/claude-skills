@@ -120,3 +120,50 @@ def clear_cache():
     yield
     cache.clear()
 ```
+
+---
+
+## Cache testing patterns
+
+```python
+# Always clear cache between tests — use autouse fixture
+@pytest.fixture(autouse=True)
+def clear_cache():
+    yield
+    from django.core.cache import cache
+    cache.clear()
+
+
+@pytest.mark.django_db
+class TestCacheInvalidation:
+
+    def test_cache_set_and_get(self):
+        from django.core.cache import cache
+        cache.set('test:key', {'data': 'value'}, timeout=60)
+        result = cache.get('test:key')
+        assert result == {'data': 'value'}
+
+    def test_cache_invalidated_on_model_save(self, product, user):
+        from django.core.cache import cache
+        from core.cache import make_cache_key
+        cache_key = make_cache_key('products', 'active', 'all')
+        cache.set(cache_key, [{'id': str(product.id)}], timeout=300)
+        # Save triggers cache invalidation via signal
+        product.name = 'Updated Name'
+        product.save(update_fields=['name'])
+        # Cache should be cleared
+        assert cache.get(cache_key) is None
+
+    def test_cache_miss_falls_through_to_db(self, user):
+        from django.core.cache import cache
+        from core.cache import make_cache_key
+        cache_key = make_cache_key('products', 'active', 'all')
+        cache.delete(cache_key)  # ensure cache miss
+        # Function should query DB and populate cache
+        from products.services import get_active_products
+        result = get_active_products()
+        assert isinstance(result, list)
+        # Second call should use cache
+        cached = cache.get(cache_key)
+        assert cached is not None
+```

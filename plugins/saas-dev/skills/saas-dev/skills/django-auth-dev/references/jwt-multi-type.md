@@ -398,3 +398,57 @@ path('api/v1/auth/vendor/refresh/', VendorTokenRefreshView.as_view()),    # non-
 
 **Rule:** Always use custom `TokenRefreshView` subclasses for non-primary user types.
 The stock `TokenRefreshView` only works correctly with `AUTH_USER_MODEL`.
+
+---
+
+## Rate limiting on auth endpoints (brute force protection)
+
+```python
+# Install: pip install django-ratelimit
+# Or use DRF's built-in throttling (no extra package needed)
+
+# settings/base.py
+REST_FRAMEWORK = {
+    ...
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'login': '5/minute',        # custom throttle for login endpoints
+        'password_reset': '3/hour', # strict limit for password reset
+    }
+}
+
+# core/throttling.py
+from rest_framework.throttling import AnonRateThrottle
+
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'  # uses 'login' rate from DEFAULT_THROTTLE_RATES
+
+class PasswordResetThrottle(AnonRateThrottle):
+    scope = 'password_reset'
+
+
+# Apply to login views — add throttle_classes
+class StaffLoginView(TokenObtainPairView):
+    serializer_class = StaffTokenObtainPairSerializer
+    throttle_classes = [LoginRateThrottle]   # ← 5 attempts/minute per IP
+
+class CustomerPasswordResetRequestView(APIView):
+    throttle_classes = [PasswordResetThrottle]  # ← 3 attempts/hour per IP
+```
+
+```python
+# Rate limit test
+def test_login_rate_limited_after_5_attempts(self, api_client, staff_user):
+    for _ in range(5):
+        api_client.post('/api/v1/auth/staff/login/',
+            {'email': 'wrong@test.com', 'password': 'wrongpass'}, format='json')
+    # 6th attempt should be rate limited
+    r = api_client.post('/api/v1/auth/staff/login/',
+        {'email': 'wrong@test.com', 'password': 'wrongpass'}, format='json')
+    assert r.status_code == 429  # Too Many Requests
+```
