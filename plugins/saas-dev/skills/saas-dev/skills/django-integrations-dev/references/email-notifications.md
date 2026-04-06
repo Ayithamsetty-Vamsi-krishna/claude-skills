@@ -211,3 +211,59 @@ class Notification(BaseModel):
             models.Index(fields=['recipient_content_type', 'recipient_id', 'is_read']),
         ]
 ```
+
+---
+
+## Email testing patterns
+
+```python
+# pytest — use Django's mailoutbox fixture (built-in with pytest-django)
+@pytest.mark.django_db
+class TestEmailSending:
+
+    def test_invoice_email_sent(self, invoice, settings):
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+        from notifications.tasks import send_invoice_email_task
+        result = send_invoice_email_task.delay(str(invoice.id))
+        assert result.successful()
+
+    def test_email_content(self, invoice, mailoutbox):
+        """mailoutbox captures all sent emails in tests."""
+        from core.email import send_template_email
+        send_template_email(
+            template_name='invoice',
+            subject=f'Invoice {invoice.code}',
+            recipient='test@example.com',
+            context={'invoice': invoice},
+        )
+        assert len(mailoutbox) == 1
+        msg = mailoutbox[0]
+        assert msg.to == ['test@example.com']
+        assert invoice.code in msg.subject
+        assert 'text/html' in [ct for ct, _ in msg.alternatives]
+
+    def test_email_not_sent_to_invalid_address(self, invoice):
+        from core.email import send_template_email
+        result = send_template_email(
+            template_name='invoice',
+            subject='Test',
+            recipient='not-an-email',  # invalid
+            context={'invoice': invoice},
+        )
+        # send_template_email catches exception and returns False
+        assert result is False
+
+    def test_welcome_email_sent_on_customer_create(self, mailoutbox, db, user):
+        from customers.models import CustomerUser
+        customer = CustomerUser.objects.create_user(
+            email='new@customer.com', password='pass123', first_name='Test'
+        )
+        # If using signals to trigger welcome email:
+        assert any('Welcome' in m.subject for m in mailoutbox)
+```
+
+```python
+# settings/testing.py — use console backend or locmem backend
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+# pytest-django's mailoutbox fixture works with locmem backend automatically
+```

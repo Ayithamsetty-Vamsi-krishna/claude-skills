@@ -48,6 +48,12 @@ class StaffUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)   # required for Django admin
     date_joined = models.DateTimeField(auto_now_add=True)
+    deactivated_by = models.ForeignKey(
+        'self', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='deactivated_staff',
+        help_text='Who deactivated this account'
+    )
+    deactivated_at = models.DateTimeField(null=True, blank=True)
 
     objects = StaffUserManager()
 
@@ -102,6 +108,9 @@ class CustomerUser(AbstractBaseUser):
     company = models.CharField(max_length=200, blank=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
+    deactivated_at = models.DateTimeField(null=True, blank=True)
+    # Store who deactivated (usually a StaffUser) — use settings.AUTH_USER_MODEL
+    deactivated_by_id = models.UUIDField(null=True, blank=True)  # FK avoided to prevent circular
 
     objects = CustomerUserManager()
 
@@ -160,4 +169,74 @@ python manage.py makemigrations customers
 python manage.py migrate customers
 # then all other apps
 python manage.py migrate
+```
+
+---
+
+## Account deactivation pattern
+
+```python
+# core/mixins.py — deactivation mixin for all user types
+from django.utils import timezone
+
+def deactivate_user(user, deactivated_by_user=None):
+    """
+    Soft-deactivates any user type by setting is_active=False.
+    Works for both primary (StaffUser) and non-primary types.
+    NEVER hard-delete user accounts — always deactivate.
+    """
+    user.is_active = False
+    user.deactivated_at = timezone.now()
+    if deactivated_by_user:
+        user.deactivated_by_id = deactivated_by_user.id  # store ID, avoid cross-model FK
+    user.save(update_fields=['is_active', 'deactivated_at', 'deactivated_by_id'])
+    # Revoke all tokens immediately
+    from core.utils import revoke_all_tokens
+    revoke_all_tokens(str(user.id), user.__class__.__name__.replace('User','').lower())
+```
+
+---
+
+## Django Admin for non-primary user types
+
+Non-primary user types (CustomerUser, VendorUser) are not registered in Django admin by default.
+Register them manually so admins can manage all user types from one panel.
+
+```python
+# customers/admin.py
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomerUser
+
+
+@admin.register(CustomerUser)
+class CustomerUserAdmin(admin.ModelAdmin):
+    """
+    Custom admin for CustomerUser (non-primary, no PermissionsMixin).
+    Cannot use UserAdmin base class since CustomerUser has no Django permissions.
+    """
+    list_display = ('email', 'first_name', 'last_name', 'is_active', 'date_joined')
+    list_filter = ('is_active', 'date_joined')
+    search_fields = ('email', 'first_name', 'last_name', 'phone')
+    readonly_fields = ('id', 'date_joined', 'deactivated_at')
+    fieldsets = (
+        ('Account', {'fields': ('email', 'is_active')}),
+        ('Personal', {'fields': ('first_name', 'last_name', 'phone', 'company')}),
+        ('Audit', {'classes': ('collapse',),
+                   'fields': ('id', 'date_joined', 'deactivated_at', 'deactivated_by_id')}),
+    )
+    ordering = ('-date_joined',)
+
+    # Override delete to deactivate instead of hard delete
+    def delete_model(self, request, obj):
+        from core.utils import deactivate_user
+        deactivate_user(obj, deactivated_by_user=request.user)
+
+    def delete_queryset(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(is_active=False, deactivated_at=timezone.now())
+
+    # Disable add from admin — customers register themselves
+    def has_add_permission(self, request):
+        return False   # or True if admin should be able to create customers
 ```

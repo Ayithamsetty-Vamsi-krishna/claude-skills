@@ -142,3 +142,79 @@ def test_task_called_on_invoice_create(invoice, mocker):
         invoice.customer.email,
     )
 ```
+
+---
+
+## Django-Q: permanent failure handling (after all retries)
+
+Django-Q doesn't have Celery's `on_failure` hook. Use the `hook` parameter instead:
+
+```python
+# notifications/tasks.py
+def send_invoice_email(invoice_id: str, recipient_email: str):
+    """Main task — raises on failure so Django-Q retries."""
+    from invoices.models import Invoice
+    from core.email import send_template_email
+    import logging
+    logger = logging.getLogger(__name__)
+
+    invoice = Invoice.objects.get(id=invoice_id)
+    success = send_template_email(
+        template_name='invoice',
+        subject=f'Invoice {invoice.code}',
+        recipient=recipient_email,
+        context={'invoice': invoice},
+    )
+    if not success:
+        raise Exception(f'Email send failed for invoice {invoice_id}')
+
+
+def on_email_task_complete(task):
+    """
+    Hook — called after task completes (success or permanent failure).
+    task.success = True/False
+    task.result = return value or exception string
+    """
+    if task.success:
+        return  # Nothing to do on success
+
+    # Permanent failure (all retries exhausted)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.error(f'Email task permanently failed: {task.func} id={task.id}')
+
+    # 1. Mark record as failed
+    try:
+        invoice_id = task.args[0] if task.args else None
+        if invoice_id:
+            from invoices.models import Invoice
+            Invoice.objects.filter(id=invoice_id).update(email_status='failed')
+    except Exception as e:
+        logger.error(f'Could not mark invoice: {e}')
+
+    # 2. Alert via Sentry
+    import sentry_sdk
+    sentry_sdk.capture_message(
+        f'Django-Q task permanently failed: {task.func}',
+        level='error',
+        extras={'task_id': str(task.id), 'result': str(task.result)}
+    )
+
+    # 3. Dead letter cache entry
+    from django.core.cache import cache
+    cache.set(
+        f'dead_letter:djangoq:{task.id}',
+        {'func': task.func, 'args': task.args, 'result': str(task.result)},
+        timeout=86400 * 7
+    )
+
+
+# Queue with hook:
+from django_q.tasks import async_task
+async_task(
+    'notifications.tasks.send_invoice_email',
+    str(invoice.id),
+    customer.email,
+    hook='notifications.tasks.on_email_task_complete',  # ← fires on complete or fail
+)
+```

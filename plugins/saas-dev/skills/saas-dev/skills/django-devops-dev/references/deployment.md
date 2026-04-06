@@ -245,3 +245,92 @@ steps:
   - name: Deploy new code
     # trigger deploy AFTER migrations succeed
 ```
+
+---
+
+## Environment promotion (dev → staging → production)
+
+### Settings structure
+```python
+config/settings/
+├── base.py           # shared settings
+├── development.py    # local dev (DEBUG=True, console email, etc.)
+├── staging.py        # mirrors production but with test data
+└── production.py     # production (DEBUG=False, real services)
+```
+
+```python
+# settings/staging.py
+from .base import *
+from decouple import config
+
+DEBUG = False
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
+
+# Use real external services but separate accounts/keys
+DATABASES = {'default': dj_database_url.config(default=config('DATABASE_URL'))}
+STRIPE_SECRET_KEY = config('STRIPE_TEST_KEY')  # test mode Stripe key
+AWS_STORAGE_BUCKET_NAME = config('AWS_STAGING_BUCKET')
+SENTRY_DSN = config('SENTRY_STAGING_DSN', default='')
+
+# Email: send to a catch-all in staging
+EMAIL_HOST_USER = config('STAGING_EMAIL_USER')
+```
+
+### Render: two services (staging + production)
+```yaml
+# render.yaml
+services:
+  - type: web
+    name: backend-staging
+    branch: develop          # auto-deploy develop branch
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.staging
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db-staging
+          property: connectionString
+
+  - type: web
+    name: backend-production
+    branch: main             # auto-deploy main branch
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db-production
+          property: connectionString
+```
+
+### GitHub Actions: staging deploy on PR merge, production on tag
+```yaml
+# .github/workflows/cd.yml
+on:
+  push:
+    branches: [develop]     # → staging
+    tags: ['v*']             # → production
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to staging
+        run: curl -X POST ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+
+  deploy-production:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production   # requires manual approval in GitHub
+    steps:
+      - name: Deploy to production
+        run: curl -X POST ${{ secrets.RENDER_PROD_DEPLOY_HOOK }}
+```
+
+**Promotion flow:**
+```
+feature branch → PR → review → merge to develop → auto-deploy staging
+staging testing OK → merge develop to main → tag release → manual approve → deploy production
+```

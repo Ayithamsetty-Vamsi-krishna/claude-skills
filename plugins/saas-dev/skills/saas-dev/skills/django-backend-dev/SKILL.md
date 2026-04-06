@@ -198,6 +198,8 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - API versioning / breaking changes → `references/api-versioning.md`
 - Cross-app service layer → `references/services.md`
 - Sequential code generation (ORD-0001) → `references/code-generation.md`
+- Django signals (model events → tasks/cache/notifications) → `references/services.md` (signals section)
+- Redis caching → route to `django-integrations-dev` → `references/caching.md`
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 

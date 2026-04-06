@@ -328,3 +328,73 @@ path('api/v1/auth/customer/password-reset/confirm/', CustomerPasswordResetConfir
 
 **Rule:** Never use Django's built-in `PasswordResetView` for non-primary user types.
 Always implement the custom token-via-cache pattern above.
+
+---
+
+## Custom TokenRefreshView for non-primary user types
+
+⚠️ **Critical:** Django's stock `TokenRefreshView` validates the refresh token but then
+calls `get_user()` against `AUTH_USER_MODEL` only. For non-primary types (CustomerUser),
+the refreshed access token will have wrong user data or fail entirely.
+
+**Solution:** Override `TokenRefreshView` per user type to re-embed correct claims.
+
+```python
+# customers/views.py
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+from rest_framework import status
+
+
+class CustomerTokenRefreshView(TokenRefreshView):
+    """
+    Custom refresh view for CustomerUser.
+    Re-validates user is still active and re-embeds correct claims.
+    """
+    def post(self, request, *args, **kwargs):
+        refresh_token_str = request.data.get('refresh')
+        try:
+            refresh = RefreshToken(refresh_token_str)
+            # Validate user_type claim
+            if refresh.get('user_type') != 'customer':
+                return Response({
+                    'success': False,
+                    'message': 'Invalid token type.',
+                    'errors': {}
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            user_id = refresh.get('user_id')
+            from customers.models import CustomerUser
+            customer = CustomerUser.objects.get(id=user_id, is_active=True)
+
+            # Generate new access token with fresh claims
+            new_refresh = RefreshToken.for_user(customer)
+            new_refresh['user_type'] = 'customer'
+            new_refresh['user_id'] = str(customer.id)
+            new_refresh['email'] = customer.email
+
+            return Response({
+                'success': True,
+                'data': {
+                    'access': str(new_refresh.access_token),
+                    'refresh': str(new_refresh),
+                }
+            })
+        except Exception:
+            return Response({
+                'success': False,
+                'message': 'Token is invalid or expired.',
+                'errors': {}
+            }, status=status.HTTP_401_UNAUTHORIZED)
+```
+
+```python
+# config/urls.py — use custom refresh views for non-primary types
+path('api/v1/auth/staff/refresh/', TokenRefreshView.as_view()),          # primary type: stock view ok
+path('api/v1/auth/customer/refresh/', CustomerTokenRefreshView.as_view()), # non-primary: custom view
+path('api/v1/auth/vendor/refresh/', VendorTokenRefreshView.as_view()),    # non-primary: custom view
+```
+
+**Rule:** Always use custom `TokenRefreshView` subclasses for non-primary user types.
+The stock `TokenRefreshView` only works correctly with `AUTH_USER_MODEL`.
