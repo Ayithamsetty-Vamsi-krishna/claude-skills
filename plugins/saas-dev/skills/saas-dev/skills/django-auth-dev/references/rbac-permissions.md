@@ -113,3 +113,67 @@ def get_token(cls, user):
 
 **Warning:** Embedding permissions in JWT means token must be refreshed after permission changes.
 Add a `permissions_updated_at` timestamp to the user model and validate in authentication backend if needed.
+
+---
+
+## Token invalidation after role/permission change
+
+When a user's role changes, their current JWT still carries the old role claim.
+Two strategies — choose based on security requirements:
+
+### Strategy A — Accept staleness (simpler, most SaaS use this)
+Tokens expire naturally (15–60 min). Role change takes effect on next login.
+Acceptable when: role changes are rare and short access windows are fine.
+
+```python
+# Just update the user model — next token refresh picks up new role
+staff_user.role = 'admin'
+staff_user.save(update_fields=['role'])
+# Old tokens still work for up to ACCESS_TOKEN_LIFETIME
+```
+
+### Strategy B — Force immediate re-authentication (strict)
+
+```python
+# staff/models.py — add version field
+class StaffUser(AbstractBaseUser, PermissionsMixin):
+    ...
+    token_version = models.IntegerField(default=1)  # increment = invalidate all tokens
+
+# staff/serializers.py — embed version in token
+@classmethod
+def get_token(cls, user):
+    token = super().get_token(user)
+    token['user_type'] = 'staff'
+    token['user_id'] = str(user.id)
+    token['role'] = user.role
+    token['token_version'] = user.token_version   # ← embed version
+    return token
+
+# core/authentication.py — validate version on every request
+class StaffJWTAuthentication(JWTAuthentication):
+    def get_user(self, validated_token):
+        if validated_token.get('user_type') != 'staff':
+            raise InvalidToken('Token is not a staff token.')
+        user_id = validated_token.get('user_id')
+        token_version = validated_token.get('token_version', 0)
+        from staff.models import StaffUser
+        try:
+            user = StaffUser.objects.get(id=user_id, is_active=True)
+            # Validate token version — if user's version > token's version, token is stale
+            if user.token_version != token_version:
+                raise InvalidToken('Token is outdated. Please log in again.')
+            return user
+        except StaffUser.DoesNotExist:
+            raise AuthenticationFailed('Staff user not found.')
+
+# When role changes — increment version to invalidate all existing tokens
+def change_role(staff_user, new_role, changed_by):
+    from django.db.models import F
+    staff_user.role = new_role
+    staff_user.token_version = F('token_version') + 1   # atomic increment
+    staff_user.save(update_fields=['role', 'token_version'])
+    # All existing tokens now have wrong token_version → will get 401
+```
+
+**Recommended:** Use Strategy A for most SaaS. Use Strategy B for financial/compliance apps where role changes must be immediate.

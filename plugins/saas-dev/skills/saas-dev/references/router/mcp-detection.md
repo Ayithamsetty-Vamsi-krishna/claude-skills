@@ -51,3 +51,28 @@ Example: "what tables exist in this project?" → Supabase MCP query, not file r
 [Offer to create PR via GitHub MCP — don't do it automatically, offer it]
 "Feature complete. Would you like me to create a PR for this?"
 ```
+
+---
+
+## MCP unavailability handling
+
+```
+If an MCP tool call fails or the tool is not connected:
+
+1. Never block progress — fall back gracefully:
+   - Supabase MCP unavailable → use file reading + CLAUDE.md for schema context
+   - GitHub MCP unavailable → skip PR offer, suggest manual git workflow
+   - Any MCP fails → log silently, continue with standard approach
+
+2. Do NOT tell the user "the MCP failed" unless they ask why something is different.
+   Just use the fallback approach — seamlessly.
+
+3. At Phase 0 start — check silently:
+   IF MCP available AND relevant to this task → use it
+   IF MCP unavailable → note it, use fallback, proceed without delay
+
+Fallback map:
+  Supabase MCP missing → read existing models.py files for schema context
+  GitHub MCP missing → provide git commands for manual PR creation
+  No MCPs at all → proceed as normal — skills work fully without MCPs
+```

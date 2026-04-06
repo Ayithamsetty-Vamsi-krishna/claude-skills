@@ -51,6 +51,23 @@ class Payment(BaseModel):
 
     def __str__(self):
         return f"{self.provider} {self.amount} {self.currency} — {self.status}"
+
+# Why GenericForeignKey?
+# Payment can be attached to ANY model — Order, Invoice, Subscription, etc.
+# Without GenericForeignKey, you'd need a separate payment table per model.
+#
+# Usage:
+#   order = Order.objects.get(id=order_id)
+#   payment = Payment.objects.create(
+#       content_type=ContentType.objects.get_for_model(Order),
+#       object_id=order.id,
+#       amount=1000, currency='INR', provider='stripe', ...
+#   )
+#   # Retrieve: payment.content_object → returns the Order instance
+#
+# If you only ever attach payments to one model (e.g. only Invoices),
+# use a direct ForeignKey instead — simpler and faster:
+#   invoice = models.ForeignKey('invoices.Invoice', on_delete=models.PROTECT)
 ```
 
 ---

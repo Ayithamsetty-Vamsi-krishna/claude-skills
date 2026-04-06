@@ -162,3 +162,75 @@ class TestSendInvoiceEmail:
         result = send_invoice_email.delay(str(uuid.uuid4()), 'test@example.com')
         assert result.get()['success'] is False
 ```
+
+---
+
+## Task exhaustion — after all retries fail
+
+```python
+# Pattern: on_failure hook + model field update + admin alert
+from celery import shared_task
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
+
+
+def on_task_failure(exc, task_id, args, kwargs, einfo):
+    """
+    Called after ALL retries are exhausted.
+    Use this to: mark record as failed, alert admin, push to dead letter.
+    """
+    invoice_id = args[0] if args else kwargs.get('invoice_id')
+    logger.error(f'Task permanently failed: {task_id} invoice={invoice_id} error={exc}')
+
+    # 1. Mark the record as failed
+    if invoice_id:
+        from invoices.models import Invoice
+        Invoice.objects.filter(id=invoice_id).update(email_status='failed')
+
+    # 2. Alert admin via Sentry (already configured)
+    import sentry_sdk
+    sentry_sdk.capture_exception(exc, extras={
+        'task_id': task_id, 'invoice_id': invoice_id
+    })
+
+    # 3. Push to dead letter queue (optional — for manual retry later)
+    from django.core.cache import cache
+    dead_letter_key = f'dead_letter:invoice_email:{invoice_id}'
+    cache.set(dead_letter_key, {
+        'task_id': task_id,
+        'invoice_id': invoice_id,
+        'error': str(exc),
+        'failed_at': str(__import__('django.utils.timezone', fromlist=['timezone']).timezone.now()),
+    }, timeout=86400 * 7)  # keep 7 days
+
+
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    on_failure=on_task_failure,   # ← fires after ALL retries exhausted
+)
+def send_invoice_email(self, invoice_id: str, recipient_email: str):
+    # ... same as before
+    pass
+```
+
+```python
+# Admin view for dead letter queue — allows manual retry
+# core/admin.py
+from django.contrib import admin
+from django.core.cache import cache
+
+@admin.register(...)
+class DeadLetterAdmin(admin.ModelAdmin):
+    # Or expose via API endpoint for admin dashboard
+    actions = ['retry_failed_tasks']
+
+    def retry_failed_tasks(self, request, queryset):
+        for item in queryset:
+            # Re-queue the failed task
+            send_invoice_email.delay(item.invoice_id, item.recipient_email)
+```

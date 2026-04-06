@@ -154,3 +154,65 @@ class TestTokenRevocation:
         r_refresh = client.post('/api/v1/auth/staff/refresh/', {'refresh': refresh})
         assert r_refresh.status_code == 401
 ```
+
+---
+
+## Test database setup for multiple AbstractBaseUser models
+
+```python
+# pytest.ini — ensure all user type apps are in INSTALLED_APPS for tests
+# settings/testing.py
+from .base import *
+
+DJANGO_SETTINGS_MODULE = 'config.settings.testing'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test_db',
+        'USER': 'testuser',
+        'PASSWORD': 'testpassword',
+        'HOST': 'localhost',
+        'PORT': 5432,
+        'TEST': {
+            'NAME': 'test_db',   # explicit test DB name
+        }
+    }
+}
+
+# All user type apps MUST be in INSTALLED_APPS for test discovery
+INSTALLED_APPS = [
+    ...
+    'staff',        # ← StaffUser
+    'customers',    # ← CustomerUser
+    'vendors',      # ← VendorUser
+    'rest_framework_simplejwt.token_blacklist',
+]
+
+# conftest.py — project root
+# Cross-user-type fixture helpers
+
+@pytest.fixture
+def staff_token(db, staff_user):
+    """Returns a valid staff JWT access token string."""
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(staff_user)
+    refresh['user_type'] = 'staff'
+    refresh['user_id'] = str(staff_user.id)
+    refresh['role'] = staff_user.role
+    return str(refresh.access_token)
+
+@pytest.fixture
+def customer_token(db, customer_user):
+    """Returns a valid customer JWT access token string."""
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(customer_user)
+    refresh['user_type'] = 'customer'
+    refresh['user_id'] = str(customer_user.id)
+    return str(refresh.access_token)
+
+# Usage in tests:
+def test_cross_type_rejection(api_client, customer_token):
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {customer_token}')
+    r = api_client.get('/api/v1/staff-only-endpoint/')
+    assert r.status_code in [401, 403]
+```

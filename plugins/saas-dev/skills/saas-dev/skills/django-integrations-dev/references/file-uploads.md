@@ -210,3 +210,51 @@ class OrderAttachment(BaseModel):
             ExpiresIn=expiry_seconds,
         )
 ```
+
+---
+
+## Virus scanning (when strict validation required)
+
+```python
+# Option A — ClamAV (self-hosted, free)
+# Install: sudo apt install clamav && pip install pyclamd
+
+import pyclamd
+
+def scan_file_for_virus(file_data: bytes) -> bool:
+    """Returns True if file is clean, False if infected."""
+    try:
+        cd = pyclamd.ClamdNetworkSocket(host='localhost', port=3310)
+        result = cd.scan_stream(file_data)
+        if result and 'stream' in result:
+            return False  # Infected
+        return True  # Clean
+    except Exception:
+        # If ClamAV is unavailable, log and allow (or block — your policy)
+        import logging
+        logging.getLogger(__name__).warning('ClamAV unavailable — skipping scan')
+        return True  # Fail-open (change to False for fail-closed)
+
+
+# Option B — VirusTotal API (cloud, requires API key)
+# Research: web_fetch https://docs.virustotal.com/reference/overview before implementing
+# Free tier: 4 requests/min, 500/day
+
+import requests
+from decouple import config
+
+def scan_with_virustotal(file_data: bytes, filename: str) -> dict:
+    """Returns scan result dict. Research VirusTotal docs before using."""
+    api_key = config('VIRUSTOTAL_API_KEY')
+    response = requests.post(
+        'https://www.virustotal.com/api/v3/files',
+        headers={'x-apikey': api_key},
+        files={'file': (filename, file_data)},
+        timeout=30,
+    )
+    return response.json()
+```
+
+**Recommendation:** For most SaaS, MIME type checking + file size limits is sufficient.
+Add ClamAV only if regulatory compliance (HIPAA, SOC2) requires it.
+Document your security policy in CLAUDE.md so future sessions know the choice.

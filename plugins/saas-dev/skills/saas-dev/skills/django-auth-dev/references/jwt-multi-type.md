@@ -226,3 +226,105 @@ class MixedView(generics.ListAPIView):
     authentication_classes = [StaffJWTAuthentication, CustomerJWTAuthentication]
     permission_classes = [IsAuthenticated]
 ```
+
+---
+
+## Password Reset (non-primary user types)
+
+Django's built-in password reset only works with AUTH_USER_MODEL.
+For non-primary types (CustomerUser, VendorUser), implement a custom token-based flow.
+
+```python
+# customers/views.py
+import secrets
+from django.utils import timezone
+from django.core.cache import cache
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+
+class CustomerPasswordResetRequestView(APIView):
+    """Step 1: Request password reset — sends email with token."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', '').lower().strip()
+        # Always return success — never reveal if email exists (security)
+        from customers.models import CustomerUser
+        try:
+            customer = CustomerUser.objects.get(email=email, is_active=True)
+            token = secrets.token_urlsafe(32)
+            cache_key = f'password_reset:customer:{token}'
+            cache.set(cache_key, str(customer.id), timeout=3600)  # 1 hour
+
+            # Send email with reset link
+            from core.email import send_template_email
+            send_template_email(
+                template_name='password_reset',
+                subject='Reset your password',
+                recipient=email,
+                context={
+                    'reset_url': f'{settings.FRONTEND_URL}/reset-password?token={token}&type=customer',
+                    'expiry_minutes': 60,
+                }
+            )
+        except CustomerUser.DoesNotExist:
+            pass  # Silently ignore — don't reveal if email exists
+
+        return Response({
+            'success': True,
+            'message': 'If that email exists, a reset link has been sent.'
+        })
+
+
+class CustomerPasswordResetConfirmView(APIView):
+    """Step 2: Confirm reset with token and new password."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        token = request.data.get('token', '')
+        new_password = request.data.get('password', '')
+
+        if len(new_password) < 8:
+            return Response({
+                'success': False,
+                'message': 'Password must be at least 8 characters.',
+                'errors': {'password': ['Minimum 8 characters required.']}
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        cache_key = f'password_reset:customer:{token}'
+        customer_id = cache.get(cache_key)
+
+        if not customer_id:
+            return Response({
+                'success': False,
+                'message': 'Reset link is invalid or has expired.',
+                'errors': {}
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        from customers.models import CustomerUser
+        try:
+            customer = CustomerUser.objects.get(id=customer_id)
+            customer.set_password(new_password)  # ALWAYS use set_password — never plain text
+            customer.save(update_fields=['password'])
+            cache.delete(cache_key)  # Single use — delete after success
+
+            return Response({'success': True, 'message': 'Password reset successfully.'})
+        except CustomerUser.DoesNotExist:
+            return Response({
+                'success': False, 'message': 'User not found.', 'errors': {}
+            }, status=status.HTTP_400_BAD_REQUEST)
+```
+
+```python
+# config/urls.py — add per user type
+path('api/v1/auth/customer/password-reset/', CustomerPasswordResetRequestView.as_view()),
+path('api/v1/auth/customer/password-reset/confirm/', CustomerPasswordResetConfirmView.as_view()),
+# Repeat pattern for VendorUser, DriverUser etc.
+```
+
+**Rule:** Never use Django's built-in `PasswordResetView` for non-primary user types.
+Always implement the custom token-via-cache pattern above.

@@ -215,6 +215,8 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 
 ## PHASE 4 — REVIEW CHECKLIST
 
+> **Adaptive checklist:** Skip any item that was explicitly opted out of during Phase 0 clarifying questions (e.g. user chose hard delete → skip SoftDeleteMixin item; user chose no OAuth → skip OAuth items). The checklist reflects defaults — document any deliberate deviations in CLAUDE.md.
+
 - [ ] All models inherit `BaseModel` — no manual id/timestamps
 - [ ] All models have meaningful `__str__` method
 - [ ] All views use `AuditMixin` — `created_by`/`updated_by` auto-filled

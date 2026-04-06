@@ -171,3 +171,70 @@ class TestInvoiceApprovalService:
         invoice.refresh_from_db()
         assert invoice.status == 'pending'
 ```
+
+---
+
+## Django Signals Pattern (model events)
+
+Use signals when: a model event should trigger side effects (notifications, cache invalidation,
+async tasks) WITHOUT coupling the model to those concerns.
+
+```python
+# orders/signals.py
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Order
+
+
+@receiver(post_save, sender=Order)
+def on_order_status_change(sender, instance, created, **kwargs):
+    """
+    Fires after every Order save.
+    Triggers: cache invalidation, notification, async tasks.
+    """
+    if created:
+        # New order — trigger welcome email + assign agent
+        from notifications.tasks import send_order_confirmation_task
+        send_order_confirmation_task.delay(str(instance.id))
+        return
+
+    # Existing order updated — check what changed
+    if instance.tracker.has_changed('status'):   # requires django-model-utils
+        old_status = instance.tracker.previous('status')
+        new_status = instance.status
+
+        # Cache invalidation
+        from django.core.cache import cache
+        cache.delete_pattern(f'*:orders:customer:{instance.customer_id}:*')
+
+        # Notify customer of status change
+        from notifications.tasks import send_status_update_task
+        send_status_update_task.delay(
+            str(instance.id), old_status, new_status
+        )
+
+
+# orders/apps.py — connect signals on app ready
+from django.apps import AppConfig
+
+class OrdersConfig(AppConfig):
+    name = 'orders'
+
+    def ready(self):
+        import orders.signals   # ← must import here to connect signals
+```
+
+```python
+# Install django-model-utils for field change tracking:
+# pip install django-model-utils
+
+# orders/models.py
+from model_utils import FieldTracker
+
+class Order(BaseModel):
+    ...
+    tracker = FieldTracker(fields=['status', 'assigned_to'])   # track specific fields
+```
+
+**Rule:** Keep signal handlers thin — they should only dispatch tasks or invalidate cache.
+Never put business logic inside a signal handler. Business logic → serializer or service.

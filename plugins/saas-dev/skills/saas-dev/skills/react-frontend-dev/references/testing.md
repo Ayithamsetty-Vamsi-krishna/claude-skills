@@ -347,3 +347,75 @@ describe('Order Selectors', () => {
 
 **Zod:**
 - [ ] Malformed API response handled and error shown
+
+---
+
+## SSE + WebSocket test patterns
+
+```typescript
+// Testing useSSE hook — mock EventSource
+describe('useSSE', () => {
+  class MockEventSource {
+    static instances: MockEventSource[] = []
+    onopen: (() => void) | null = null
+    onmessage: ((e: MessageEvent) => void) | null = null
+    onerror: (() => void) | null = null
+    close = vi.fn()
+    constructor(public url: string) { MockEventSource.instances.push(this) }
+    // Helper to simulate receiving a message
+    simulateMessage(data: unknown) {
+      this.onmessage?.({ data: JSON.stringify(data) } as MessageEvent)
+    }
+  }
+
+  beforeEach(() => {
+    MockEventSource.instances = []
+    vi.stubGlobal('EventSource', MockEventSource)
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('calls onMessage when event received', () => {
+    const onMessage = vi.fn()
+    renderHook(() => useSSE('/api/status/', onMessage))
+    MockEventSource.instances[0].simulateMessage({ status: 'confirmed' })
+    expect(onMessage).toHaveBeenCalledWith({ status: 'confirmed' })
+  })
+
+  it('closes EventSource on unmount', () => {
+    const { unmount } = renderHook(() => useSSE('/api/status/', vi.fn()))
+    unmount()
+    expect(MockEventSource.instances[0].close).toHaveBeenCalled()
+  })
+})
+
+// Testing useWebSocket hook — mock WebSocket
+describe('useWebSocket', () => {
+  class MockWebSocket {
+    static instances: MockWebSocket[] = []
+    onopen: (() => void) | null = null
+    onmessage: ((e: MessageEvent) => void) | null = null
+    onclose: (() => void) | null = null
+    onerror: (() => void) | null = null
+    readyState = WebSocket.OPEN
+    send = vi.fn()
+    close = vi.fn()
+    constructor(public url: string) { MockWebSocket.instances.push(this) }
+    simulateMessage(data: unknown) {
+      this.onmessage?.({ data: JSON.stringify(data) } as MessageEvent)
+    }
+  }
+
+  beforeEach(() => {
+    MockWebSocket.instances = []
+    vi.stubGlobal('WebSocket', MockWebSocket)
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('dispatches notification on message', () => {
+    const onMessage = vi.fn()
+    renderHook(() => useWebSocket('ws://test/', { onMessage }))
+    MockWebSocket.instances[0].simulateMessage({ type: 'notification', data: { id: '1' } })
+    expect(onMessage).toHaveBeenCalled()
+  })
+})
+```

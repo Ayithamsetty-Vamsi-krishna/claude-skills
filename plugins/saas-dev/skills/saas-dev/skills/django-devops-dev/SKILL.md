@@ -18,6 +18,10 @@ Never assume a deployment target without confirming.
 ## PHASE 0 — INPUT GATHERING
 
 ### Step 1: Identify input type FIRST
+Before anything else — understand what the user has given you:
+- **Direct instruction** → read carefully, extract deployment requirement
+- **Existing project** → check CLAUDE.md for services, tech stack, cloud preferences
+- **PDF/doc** → extract deployment specs first, then continue
 
 ### Step 2: Check CLAUDE.md
 Read for: existing Docker setup, deployment target, CI/CD status, cloud provider.

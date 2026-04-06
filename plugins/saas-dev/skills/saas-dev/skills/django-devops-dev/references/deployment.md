@@ -198,3 +198,50 @@ LOGGING = {
     'root': {'handlers': ['console'], 'level': 'INFO'},
 }
 ```
+
+---
+
+## Zero-downtime migration integration per platform
+
+**Always run migrations BEFORE deploying new code.** See `references/migrations-prod.md` for rules.
+
+### Render
+```yaml
+# In render.yaml — add migration as pre-deploy command
+services:
+  - type: web
+    name: backend
+    preDeployCommand: python manage.py migrate --no-input   # ← runs before new code serves traffic
+    startCommand: gunicorn config.wsgi:application ...
+```
+
+### Railway
+```bash
+# In railway.toml or via CLI before deploy
+railway run python manage.py migrate --no-input
+railway up
+```
+
+### DigitalOcean App Platform
+```yaml
+# In .do/app.yaml — run-command before service starts
+services:
+  - name: backend
+    run_command: python manage.py migrate --no-input && gunicorn config.wsgi:application
+```
+
+### GitHub Actions CD (universal)
+```yaml
+# Always migrate before triggering platform deploy
+steps:
+  - name: Run migrations
+    run: |
+      # Use your platform CLI to run migrate on the production container
+      # Examples:
+      # render: curl -X POST ${{ secrets.RENDER_MIGRATE_HOOK }}
+      # railway: railway run python manage.py migrate
+      # SSH: ssh ${{ secrets.PROD_HOST }} "cd /app && python manage.py migrate"
+  
+  - name: Deploy new code
+    # trigger deploy AFTER migrations succeed
+```

@@ -116,9 +116,26 @@ Restate: components needed, API calls, state shape, user interactions, error cas
 
 ## PHASE 2 — PLAN (show, wait for approval, no code until approved)
 
+### Task size detection
+- **Single component change / single prop / single style fix** → use QUICK CHANGE PLAN
+- **Everything else** → use FULL FRONTEND PLAN
+
+```
+─────────────────────────────────
+QUICK CHANGE PLAN  (single component change only)
+─────────────────────────────────
+CHANGE: [exact change in one line]
+FILE: [single file affected]
+STEPS:
+  1. [step]
+  2. [step]
+TEST CASES: [only directly relevant ones]
+─────────────────────────────────
+```
+
 ```
 ═══════════════════════════════════
-FRONTEND IMPLEMENTATION PLAN
+FRONTEND IMPLEMENTATION PLAN  (all other tasks)
 ═══════════════════════════════════
 SUMMARY: [1-2 sentences max]
 
@@ -167,6 +184,8 @@ COMPLEXITY: Low / Medium / High
 ---
 
 ## PHASE 4 — REVIEW CHECKLIST
+
+> **Adaptive checklist:** Skip any item that was explicitly opted out of during Phase 0 clarifying questions (e.g. user chose hard delete → skip SoftDeleteMixin item; user chose no OAuth → skip OAuth items). The checklist reflects defaults — document any deliberate deviations in CLAUDE.md.
 
 - [ ] Feature folder structure followed
 - [ ] Zod schemas in `types.ts` — TypeScript types inferred from schemas

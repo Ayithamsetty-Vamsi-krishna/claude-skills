@@ -31,6 +31,19 @@ multi-user authentication systems. Follow this skill precisely.
 Check for: existing User model, JWT configuration, any AbstractBaseUser subclasses,
 existing permission patterns, `AUTH_USER_MODEL` setting.
 
+**For existing projects — build this map before asking questions:**
+```
+AUTH_USER_MODEL: [app.Model]
+Existing user types: [list from CLAUDE.md or codebase scan]
+Existing JWT setup: [simplejwt / djoser / custom / none]
+Existing UserTypeAuthMiddleware: [yes / no]
+Existing login endpoints: [list]
+What's already working: [list]
+What's needed (from requirement): [new type / new permission / reset flow / OAuth]
+```
+Only ask clarifying questions about what's NOT already clear from this map.
+Never re-implement what already exists — extend it.
+
 ### Step 4: Intelligent Clarifying Questions
 **Always use `ask_user_input_v0`.**
 
@@ -162,6 +175,8 @@ COMPLEXITY: Medium / High
 ---
 
 ## PHASE 4 — REVIEW CHECKLIST
+
+> **Adaptive checklist:** Skip any item that was explicitly opted out of during Phase 0 clarifying questions (e.g. user chose hard delete → skip SoftDeleteMixin item; user chose no OAuth → skip OAuth items). The checklist reflects defaults — document any deliberate deviations in CLAUDE.md.
 
 **Models:**
 - [ ] Each user type inherits `AbstractBaseUser` + `PermissionsMixin` (primary only)
