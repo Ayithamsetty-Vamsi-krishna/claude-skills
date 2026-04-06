@@ -74,10 +74,8 @@ Do NOT use a static question list. Instead:
 
 | Question | Ask if... | Skip if... |
 |---|---|---|
-| New app or extend existing? | App not mentioned in requirement | Requirement names an existing app |
 | New page or add to existing? | UI scope unclear | Requirement says "add to X page" |
 | User roles / permissions? | Access control not mentioned | Requirement says "all users" or "admin only" |
-| New models or extend existing? | Data structure unclear | Requirement clearly names existing models |
 | Business rules / validation? | **Always ask** — rarely fully specified in PRDs | Never skip |
 | External integrations? | Requirement mentions email, files, payments etc. | No third-party systems mentioned |
 
@@ -86,12 +84,6 @@ Do NOT use a static question list. Instead:
 ```
 Pagination: I recommend 20 records/page (our default). Change?
   → [Keep 20] [Change to 10] [Change to 50] [Custom]
-
-Permissions: Who can access this endpoint?
-  → [All authenticated users] [Specific Django permission] [Admin only]
-
-Soft delete: Should records be soft-deletable?
-  → [Yes — standard soft delete] [No — hard delete acceptable here]
 
 Filter fields: Which fields should be filterable?
   → [Suggest based on model fields] [None needed] [I'll specify]
@@ -185,7 +177,7 @@ COMPLEXITY: Low / Medium / High
   - [ ] `<Text>` | `<Button loading>` | `<FormField>` | `<StatusBadge>`
   - [ ] `<DataTable>` | `<Modal>` | `<PageHeader>` | `<EmptyState>`
   - [ ] `<LoadingSpinner>` | `<ErrorBanner>` | `<TableSkeleton>` (for list/table pages)
-- [ ] List/table pages → `<TableSkeleton />` for loading, not `<LoadingSpinner />`
+- [ ] List/table pages → `<TableSkeleton />` for loading state, not `<LoadingSpinner />`
 - [ ] `React.memo` + `displayName` on every component
 - [ ] `useCallback` on every function passed as prop
 - [ ] `useMemo` on every expensive derived value
@@ -193,22 +185,5 @@ COMPLEXITY: Low / Medium / High
 - [ ] camelCase variables, PascalCase components
 - [ ] Loading, error, empty states in every data-fetching component
 - [ ] Form errors from `err.errors` (field-level) | `err.message` in toast
-- [ ] Tailwind + shadcn only — no inline styles
-- [ ] All test cases from Phase 1 implemented
-- [ ] `index.ts` barrel export created for every feature
-- [ ] Redux Toolkit slice for all new state
-- [ ] Axios via `api.ts` only — no direct fetch/axios calls
-- [ ] All shared UI from `src/components/shared/`
-  - [ ] `<Text>` | `<Button loading>` | `<FormField>` | `<StatusBadge>`
-  - [ ] `<DataTable>` | `<Modal>` | `<PageHeader>` | `<EmptyState>`
-  - [ ] `<LoadingSpinner>` | `<ErrorBanner>` | `<TableSkeleton>` (for list/table pages)
-- [ ] List/table pages → `<TableSkeleton />` for loading, not `<LoadingSpinner />`
-- [ ] `React.memo` + `displayName` on every component
-- [ ] `useCallback` on every function passed as prop
-- [ ] `useMemo` on every expensive derived value
-- [ ] No `any` TypeScript types
-- [ ] camelCase variables, PascalCase components
-- [ ] Loading, error, empty states in every data-fetching component
-- [ ] Form errors mapped from `err.errors` (field-level) — `err.message` shown in toast
 - [ ] Tailwind + shadcn only — no inline styles
 - [ ] All test cases from Phase 1 implemented
