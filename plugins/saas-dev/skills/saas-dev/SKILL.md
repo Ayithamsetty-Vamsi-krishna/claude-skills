@@ -54,10 +54,11 @@ Analyse the requirement and identify ALL types of work needed:
 | Models / API / CRUD / serializers / filters | "create app", "add endpoint", "build API", model names | `django-backend-dev` |
 | Login / user types / JWT / permissions / RBAC | "auth", "login", "user types", "JWT", "permissions" | `django-auth-dev` |
 | Third-party service / payment / SMS / storage / OAuth | service names, "integrate", "upload", "payment" | `django-integrations-dev` |
+| Background tasks / email / async / scheduled | "Celery", "task", "async", "email", "schedule" | `django-integrations-dev` |
+| Real-time / WebSocket / notifications / SSE | "real-time", "live", "WebSocket", "notifications", "SSE" | `django-integrations-dev` |
+| Caching / Redis cache | "cache", "performance", "Redis cache" | `django-integrations-dev` |
 | React pages / components / forms / Redux / Zod | "UI", "page", "component", "frontend", "form" | `react-frontend-dev` |
-| Real-time / WebSocket / notifications / live data | "real-time", "live", "WebSocket", "notifications" | `django-integrations-dev` |
 | Docker / CI/CD / deploy / production | "deploy", "Docker", "GitHub Actions", "production" | `django-devops-dev` |
-| Background tasks / Celery / email / async | "async", "background", "email", "Celery", "task" | `django-backend-dev` |
 
 ### Step 5: Determine execution sequence
 For multi-type requirements (most real features), determine the correct build order:
