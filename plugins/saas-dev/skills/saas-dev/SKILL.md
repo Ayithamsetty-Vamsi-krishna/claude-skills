@@ -112,13 +112,6 @@ Ready to start Phase [N+1] ([skill name])? [Yes / Review output first]"
 - `skills/django-integrations-dev/SKILL.md`
 - `skills/django-devops-dev/SKILL.md`
 
-**Specialist skill locations:**
-- `skills/django-auth-dev/SKILL.md`
-- `skills/django-backend-dev/SKILL.md`
-- `skills/react-frontend-dev/SKILL.md`
-- `skills/django-integrations-dev/SKILL.md`
-- `skills/django-devops-dev/SKILL.md`
-
 ---
 
 ## PHASE 1 — SESSION CONTEXT MANAGEMENT

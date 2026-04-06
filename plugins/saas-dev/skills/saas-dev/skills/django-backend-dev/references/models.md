@@ -142,3 +142,22 @@ class OrderItem(BaseModel):
 | DB fields | snake_case | `total_amount` |
 | App names | snake_case plural | `orders` |
 | URL paths | kebab-case plural | `/api/v1/order-items/` |
+
+## Field naming hazards — avoid these names
+
+```python
+# NEVER use these as field names — they shadow Django internals:
+# model, objects, pk, id (if not UUIDField), type, class, Meta
+
+# WRONG — 'model' shadows Django's internal model attribute
+class Vehicle(BaseModel):
+    model = models.CharField(max_length=100)  # ← breaks Django internals
+
+# CORRECT — use a descriptive name
+class Vehicle(BaseModel):
+    model_name = models.CharField(max_length=100)  # ← safe
+
+# Other dangerous field names to avoid:
+# save, delete, clean, validate, full_clean, get_FOO_display
+# Use: save_path, deleted_note, clean_value instead
+```
