@@ -152,6 +152,11 @@ COMPLEXITY: Low / Medium / High
 - Component implementation → `references/components.md`
 - Shared component setup → `references/shared-library.md` + `assets/templates/shared-components.tsx`
 - Feature barrel export / Zod validation → `references/exports-validation.md`
+- Multi-step wizard forms → `references/wizard-forms.md`
+- Real-time UI (WebSocket/SSE hooks) → `references/realtime-ui.md`
+- Infinite scroll + virtual list → `references/virtual-list.md`
+- Dark/light theme system → `references/theme-system.md`
+- Animations + transitions → `references/animations.md`
 - Testing → `references/testing.md`
 
 ### After each task:

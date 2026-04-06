@@ -144,8 +144,7 @@ COMPLEXITY: Low / Medium / High
 - Payment gateways (Stripe, Razorpay, etc.) → `references/payments.md`
 - SMS + push notifications → `references/sms-push.md`
 - Email (Django email backend + templates) → `references/email-notifications.md`
-- WebSocket (Django Channels) → `references/websocket-channels.md`
-- SSE + polling → `references/sse-polling.md`
+- WebSocket + SSE + polling decision tree → `references/websocket-channels.md`
 - Background tasks — Celery → `references/tasks-celery.md`
 - Background tasks — Django-Q → `references/tasks-djangoq.md`
 - Redis caching → `references/caching.md`
