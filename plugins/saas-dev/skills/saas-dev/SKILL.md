@@ -114,7 +114,7 @@ CONTEXT FROM PREVIOUS TASK:
 
 ## ROUTER REFERENCE FILES
 
-For routing logic internals and MCP detection patterns:
+Load ONLY the reference file needed for the current router task:
 - Router logic → `references/router/routing-logic.md`
 - MCP detection → `references/router/mcp-detection.md`
 - Session context → `references/router/session-context.md`
