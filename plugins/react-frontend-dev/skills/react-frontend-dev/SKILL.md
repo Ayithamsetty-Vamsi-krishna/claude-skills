@@ -1,6 +1,6 @@
 ---
 name: react-frontend-dev
-version: 1.5.1
+version: 1.5.2
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the customers feature to use the shared component library"
 ---
 
-# React Frontend Dev Skill — v1.5.1
+# React Frontend Dev Skill — v1.5.2
 
 You are a senior React + TypeScript engineer. Follow this skill precisely.
 
@@ -135,8 +135,8 @@ TASKS
 F1: [Task name]
   F1.1 Zod schemas + TypeScript types (types.ts)
   F1.2 selectors.ts (createSelector for all state slices)
-  F1.2 [sub-task]
-  F1.3 index.ts barrel export (always last sub-task)
+  F1.3 [sub-task]
+  F1.4 index.ts barrel export (always last sub-task)
 F2: [Task name]
   ...
 T1: Tests
@@ -184,7 +184,8 @@ COMPLEXITY: Low / Medium / High
 - [ ] All shared UI from `src/components/shared/`
   - [ ] `<Text>` | `<Button loading>` | `<FormField>` | `<StatusBadge>`
   - [ ] `<DataTable>` | `<Modal>` | `<PageHeader>` | `<EmptyState>`
-  - [ ] `<LoadingSpinner>` | `<ErrorBanner>`
+  - [ ] `<LoadingSpinner>` | `<ErrorBanner>` | `<TableSkeleton>` (for list/table pages)
+- [ ] List/table pages → `<TableSkeleton />` for loading, not `<LoadingSpinner />`
 - [ ] `React.memo` + `displayName` on every component
 - [ ] `useCallback` on every function passed as prop
 - [ ] `useMemo` on every expensive derived value
@@ -200,7 +201,8 @@ COMPLEXITY: Low / Medium / High
 - [ ] All shared UI from `src/components/shared/`
   - [ ] `<Text>` | `<Button loading>` | `<FormField>` | `<StatusBadge>`
   - [ ] `<DataTable>` | `<Modal>` | `<PageHeader>` | `<EmptyState>`
-  - [ ] `<LoadingSpinner>` | `<ErrorBanner>`
+  - [ ] `<LoadingSpinner>` | `<ErrorBanner>` | `<TableSkeleton>` (for list/table pages)
+- [ ] List/table pages → `<TableSkeleton />` for loading, not `<LoadingSpinner />`
 - [ ] `React.memo` + `displayName` on every component
 - [ ] `useCallback` on every function passed as prop
 - [ ] `useMemo` on every expensive derived value

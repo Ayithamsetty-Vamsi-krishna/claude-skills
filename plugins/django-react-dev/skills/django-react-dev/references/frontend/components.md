@@ -24,7 +24,7 @@ import {
 } from '../selectors'
 import {
   DataTable, PageHeader, Button, EmptyState,
-  LoadingSpinner, ErrorBanner, StatusBadge              // ← ALL from shared
+  TableSkeleton, ErrorBanner, StatusBadge              // ← TableSkeleton for list pages
 } from '@/components/shared'
 import type { Order } from '../types'
 import type { ApiError } from '@/types'
@@ -53,7 +53,7 @@ export const OrderList = React.memo(() => {
     dispatch(setSelectedOrder(order))
   }, [dispatch])
 
-  if (loading) return <LoadingSpinner />
+  if (loading) return <TableSkeleton columns={columns.length} />   // ← TableSkeleton for list/table pages
   if (error) return <ErrorBanner message={error} />
 
   return (

@@ -13,7 +13,7 @@
       "name": "django-react-dev",
       "source": "./plugins/django-react-dev",
       "description": "Full-stack orchestrator \u2014 Django REST Framework + React/TypeScript. End-to-end feature development from PRD to implementation.",
-      "version": "1.5.1",
+      "version": "1.5.2",
       "author": {
         "name": "Ayithamsetty Vamsi Krishna"
       },
@@ -31,7 +31,7 @@
       "name": "django-backend-dev",
       "source": "./plugins/django-backend-dev",
       "description": "Backend-only Django REST Framework skill. Models, serializers, views, filters, admin, soft delete, audit fields, ORM optimisation, pytest testing.",
-      "version": "1.5.1",
+      "version": "1.5.2",
       "author": {
         "name": "Ayithamsetty Vamsi Krishna"
       },
@@ -49,7 +49,7 @@
       "name": "react-frontend-dev",
       "source": "./plugins/react-frontend-dev",
       "description": "Frontend-only React + TypeScript skill. Redux Toolkit, Axios JWT refresh, shadcn/ui, Tailwind, shared component library, memoization, Vitest testing.",
-      "version": "1.5.1",
+      "version": "1.5.2",
       "author": {
         "name": "Ayithamsetty Vamsi Krishna"
       },

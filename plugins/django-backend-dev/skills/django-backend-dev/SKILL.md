@@ -1,6 +1,6 @@
 ---
 name: django-backend-dev
-version: 1.5.1
+version: 1.5.2
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -20,7 +20,7 @@ examples:
   - "Refactor the user app to use DRF Generics instead of APIView"
 ---
 
-# Django Backend Dev Skill — v1.5.1
+# Django Backend Dev Skill — v1.5.2
 
 You are a senior Django REST Framework engineer. Follow this skill precisely.
 
@@ -28,19 +28,22 @@ You are a senior Django REST Framework engineer. Follow this skill precisely.
 
 ## PHASE 0 — INPUT GATHERING
 
-### Step 1: Check for CLAUDE.md first
-Before anything else — check if `CLAUDE.md` exists at the project root:
-- **If it exists:** read it immediately. Use it as the primary source of project context.
-  Skip or shorten codebase analysis accordingly — only analyse files not covered by CLAUDE.md.
-- **If it does not exist and this is a new project:** generate it from
-  `assets/templates/CLAUDE.md.template` at the end of the first task.
-
-### Step 2: Identify input type
-- Direct instruction → proceed
-- PDF PRD → extract text first, then proceed:
-  - Claude.ai: PDF in context — read directly
+### Step 1: Identify input type FIRST
+Before anything else — understand what the user has given you:
+- **Direct instruction** → read it carefully, extract requirement
+- **PDF PRD** → extract text first, THEN continue:
+  - Claude.ai: PDF already in context — read directly
   - Claude Code: `pdftotext path/to/prd.pdf -`
-- Existing codebase → analyse before planning
+- **Existing codebase reference** → note which apps are involved
+
+### Step 2: Check for CLAUDE.md
+Now check if `CLAUDE.md` exists at the project root:
+- **If it exists:** read it immediately. Use it as primary source of project context.
+  Skip or shorten codebase analysis for anything already documented.
+- **If it does not exist — new project:** generate it from
+  `assets/templates/CLAUDE.md.template` at the end of the first task.
+- **If it does not exist — existing project:** do full codebase analysis (Step 3),
+  then generate `CLAUDE.md` at the end so future sessions skip this step.
 
 ### Step 3: Analyse existing codebase (if CLAUDE.md absent or incomplete)
 **Small (< 20 files):** Map inline — apps, models, serializers, views, FilterSets, patterns.
@@ -74,11 +77,11 @@ Do NOT use a static question list. Instead:
 | Question | Ask if... | Skip if... |
 |---|---|---|
 | New app or extend existing? | App not mentioned in requirement | Requirement names an existing app |
-| New page or add to existing? | UI scope unclear | Requirement says "add to X page" |
 | User roles / permissions? | Access control not mentioned | Requirement says "all users" or "admin only" |
 | New models or extend existing? | Data structure unclear | Requirement clearly names existing models |
 | Business rules / validation? | **Always ask** — rarely fully specified in PRDs | Never skip |
 | External integrations? | Requirement mentions email, files, payments etc. | No third-party systems mentioned |
+| FilterSet update needed? | Task adds/modifies a model field | No new fields, or field clearly non-filterable |
 
 **Best practice suggestions — present these as choices when not specified in the requirement:**
 
@@ -94,6 +97,9 @@ Soft delete: Should records be soft-deletable?
 
 Filter fields: Which fields should be filterable?
   → [Suggest based on model fields] [None needed] [I'll specify]
+
+New field added: Should it be added to the FilterSet?
+  → [Yes — add to <App>Filter] [No — not needed for filtering]
 ```
 
 **Round limit:** There is no fixed limit — ask as many rounds as needed until everything is clear.
@@ -123,9 +129,30 @@ Restate clearly: models affected, endpoints needed, business rules, validation c
 
 ## PHASE 2 — PLAN (show, wait for approval, no code until approved)
 
+### Task size detection
+Before writing the plan, assess complexity:
+- **Single field / single filter / single component change** → use QUICK CHANGE PLAN below
+- **Everything else** → use FULL PLAN below
+
+```
+─────────────────────────────────
+QUICK CHANGE PLAN  (single field/filter change only)
+─────────────────────────────────
+CHANGE: [exact change in one line]
+FILES AFFECTED: [list]
+MIGRATION NEEDED: [yes — run makemigrations + migrate / no]
+STEPS:
+  1. [step]
+  2. [step]
+  ...
+FILTERSET UPDATE: [yes — add <field> to <App>Filter / no]
+TEST CASES: [list only directly relevant ones]
+─────────────────────────────────
+```
+
 ```
 ═══════════════════════════════════
-BACKEND IMPLEMENTATION PLAN
+BACKEND IMPLEMENTATION PLAN  (all other tasks)
 ═══════════════════════════════════
 SUMMARY: [1-2 sentences max]
 
@@ -146,7 +173,7 @@ API CONTRACT
 
 MODELS AFFECTED: [list]
 BUSINESS RULES: [list any validate_<field> / validate() needed]
-COMPLEXITY: Low / Medium / High
+COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 ═══════════════════════════════════
 ```
 **Ask: "Plan looks good? Any changes before I start?"**
@@ -154,6 +181,9 @@ COMPLEXITY: Low / Medium / High
 ---
 
 ## PHASE 3 — IMPLEMENTATION (one task at a time, confirm between each)
+
+### Critical rule for all serializer create()/update() tasks
+⚠️ NEVER use `bulk_create()` or `bulk_update()` inside serializer `create()` or `update()`. These bypass Django `save()` signals and break any model-level code generation (e.g. sequential codes). Always use individual `Model.objects.create()` calls. See `references/orm-settings.md` for full explanation.
 
 ### Reference Loading (load ONLY what the current task needs)
 - Models / BaseModel / mixins → `references/models.md`
@@ -168,8 +198,13 @@ COMPLEXITY: Low / Medium / High
 
 ### After each task:
 1. Show the completed code
-2. Suggest a git commit: `git add . && git commit -m "feat: [task description]"`
-3. Ask: **"Task [X] done ✓ — ready to move to [next task name]?"**
+2. **If the task created or modified a model:** run migrations before moving on:
+   ```bash
+   python manage.py makemigrations <app_name>
+   python manage.py migrate
+   ```
+3. Suggest a git commit: `git add . && git commit -m "feat: [task description]"`
+4. Ask: **"Task [X] done ✓ — ready to move to [next task name]?"**
 
 ---
 
@@ -200,7 +235,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] `core/serializers.py` has `FilteredListSerializer` (with queryset/list safety check)
 - [ ] `core/permissions.py` has `GetPermission` factory
 - [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
-- [ ] Migrations created and applied
+- [ ] Migrations created: `python manage.py makemigrations <app_name>` and applied: `python manage.py migrate`
 - [ ] Full `admin.py` registration with soft-delete override
 - [ ] Silk/debug-toolbar checked — zero N+1 confirmed
 - [ ] All test cases from Phase 1 implemented

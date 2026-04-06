@@ -2,6 +2,45 @@
 # Load ONLY when scaffolding a brand new Django app from scratch.
 # Copy-paste and replace <AppName>, <app_name>, <ModelName> as needed.
 
+# ══════════════════════════════════════════════════════════════════════
+# SETUP SEQUENCE — New project, follow in this exact order
+# ══════════════════════════════════════════════════════════════════════
+# 1. Django project
+#    django-admin startproject config .
+#    python manage.py startapp core
+#    Create core/models.py (BaseModel), core/mixins.py, core/serializers.py,
+#    core/permissions.py, core/exceptions.py, core/pagination.py
+#
+# 2. Configure settings
+#    settings/base.py — REST_FRAMEWORK, INSTALLED_APPS, python-decouple
+#    settings/development.py — DEBUG=True, silk, debug_toolbar, CORS_ALLOW_ALL_ORIGINS
+#    Create .env from .env.example, add .env to .gitignore
+#
+# 3. Run initial migrations
+#    python manage.py makemigrations
+#    python manage.py migrate
+#    python manage.py createsuperuser
+#
+# 4. React project (separate terminal / directory)
+#    npm create vite@latest frontend -- --template react-ts
+#    cd frontend && npm install
+#    npm install react-router-dom redux @reduxjs/toolkit react-redux
+#    npm install axios react-hook-form @hookform/resolvers zod
+#    npm install -D @testing-library/react @testing-library/user-event vitest
+#    Create src/app/store.ts, src/app/hooks.ts, src/app/router.tsx
+#    Create src/services/api.ts (Axios + JWT interceptors)
+#    Create .env and .env.example with VITE_API_BASE_URL=http://localhost:8000
+#
+# 5. Connect Django ↔ React
+#    pip install django-cors-headers
+#    settings/base.py: CORS_ALLOWED_ORIGINS from .env
+#    Verify: React dev server (5173) can reach Django (8000) without CORS errors
+#
+# 6. Generate CLAUDE.md
+#    Use assets/templates/CLAUDE.md.template — fill in project name, apps, conventions
+#    Commit CLAUDE.md so all future sessions skip this setup entirely
+# ══════════════════════════════════════════════════════════════════════
+
 # ── core/models.py ────────────────────────────────────────────────────────────
 CORE_MODELS = '''
 import uuid

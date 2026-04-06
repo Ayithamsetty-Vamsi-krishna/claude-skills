@@ -8,6 +8,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 
+
+
+
+
+
+
+## [1.5.2] — 2026-04-02 — Stability & Polish
+
+### Fixed (all 11 issues from stress test)
+- **FIX 1+11:** `django-backend-dev` Phase 0 reordered — input type identified FIRST, then CLAUDE.md. Added missing "existing project without CLAUDE.md" case.
+- **FIX 2:** `react-frontend-dev` plan template duplicate F1.2 fixed — now F1.1 Zod types, F1.2 selectors.ts, F1.3 sub-task, F1.4 index.ts barrel export.
+- **FIX 3:** `react-frontend-dev` review checklist `index.ts` barrel export listed twice — duplicate removed.
+- **FIX 4:** `django-backend-dev` clarifying questions table had "New page or add to existing?" — frontend question removed from backend-only skill.
+- **FIX 5:** No migration command shown after model tasks — `python manage.py makemigrations <app> && python manage.py migrate` now explicitly shown in Phase 3 "After each task" for all three skills.
+- **FIX 6:** Full plan generated for single-field changes — added task size detection: single field/filter/component → QUICK CHANGE PLAN (change, files, migration, FilterSet, steps, test cases). All other tasks → full plan.
+- **FIX 7:** `bulk_create` warning was passive (buried in `orm-settings.md`) — now proactively shown at top of Phase 3 implementation instructions in all three skills.
+- **FIX 8:** `TableSkeleton` not enforced — added to review checklist in all three skills. `components.md` list component template updated to use `<TableSkeleton />` for list/table loading (not `<LoadingSpinner />`).
+- **FIX 9:** New project setup order not specified — added 6-step `SETUP SEQUENCE` to `django-app-scaffold.py` template: Django project → configure settings → initial migrations → React project → connect (CORS) → generate CLAUDE.md.
+- **FIX 10:** FilterSet update not auto-suggested when adding fields — added "FilterSet update needed?" row to question decision table in all three skills. Also added to best practice suggestions.
+- **FIX 11:** (combined with FIX 1 — see above)
+
 ## [1.5.1] — 2026-04-02 — Improvements
 
 ### Added

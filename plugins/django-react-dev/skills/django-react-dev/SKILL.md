@@ -1,6 +1,6 @@
 ---
 name: django-react-dev
-version: 1.5.1
+version: 1.5.2
 compatibility:
   tools: [bash, read, write]
 description: >
@@ -21,7 +21,7 @@ examples:
   - "Scaffold a new Django app for payments and connect it to the React frontend"
 ---
 
-# Django + React/TypeScript Full-Stack Skill — v1.5.1
+# Django + React/TypeScript Full-Stack Skill — v1.5.2
 
 You are a senior full-stack engineer specialising in Django REST Framework (backend)
 and React + TypeScript (frontend). For full-stack tasks, orchestrate both.
@@ -93,6 +93,7 @@ Do NOT use a static question list. Instead:
 | New models or extend existing? | Data structure unclear | Requirement clearly names existing models |
 | Business rules / validation? | **Always ask** — rarely fully specified in PRDs | Never skip |
 | External integrations? | Requirement mentions email, files, payments etc. | No third-party systems mentioned |
+| FilterSet update needed? | Task adds/modifies a model field | No new fields, or field clearly non-filterable |
 
 **Best practice suggestions — present these as choices when not specified in the requirement:**
 
@@ -146,9 +147,29 @@ But group related questions in one `ask_user_input_v0` call. Never ask one quest
 
 ## PHASE 2 — PLAN (show first, wait for explicit approval — no code until approved)
 
+### Task size detection
+- **Single field / single filter / single component change** → use QUICK CHANGE PLAN
+- **Everything else** → use FULL-STACK PLAN
+
+```
+─────────────────────────────────────────
+QUICK CHANGE PLAN  (single field/filter/component only)
+─────────────────────────────────────────
+CHANGE: [exact change in one line]
+FILES AFFECTED: [list — backend and/or frontend]
+MIGRATION NEEDED: [yes — makemigrations + migrate / no]
+FILTERSET UPDATE: [yes — add <field> to <App>Filter / no]
+STEPS:
+  1. [step]
+  2. [step]
+  ...
+TEST CASES: [only directly relevant ones]
+─────────────────────────────────────────
+```
+
 ```
 ═══════════════════════════════════════
-FULL-STACK IMPLEMENTATION PLAN
+FULL-STACK IMPLEMENTATION PLAN  (all other tasks)
 ═══════════════════════════════════════
 SUMMARY: [2 sentences max]
 
@@ -173,7 +194,7 @@ API CONTRACT
 
 MODELS AFFECTED: [list]
 BUSINESS RULES / VALIDATIONS: [list]
-COMPLEXITY: Low / Medium / High
+COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 ═══════════════════════════════════════
 ```
 **Ask: "Plan looks good? Any changes before I start?"**
@@ -181,6 +202,9 @@ COMPLEXITY: Low / Medium / High
 ---
 
 ## PHASE 3 — IMPLEMENTATION (one task at a time, confirm between each)
+
+### Critical rule for serializer tasks
+⚠️ NEVER use `bulk_create()` or `bulk_update()` in serializer `create()` or `update()`. Bypasses `save()` signals — breaks code generation. Use individual `Model.objects.create()` calls always.
 
 ### Load ONLY the reference file needed for the current task:
 
@@ -193,6 +217,7 @@ COMPLEXITY: Low / Medium / High
 - Error handling/env vars/CORS → `references/backend/error-settings.md`
 - API versioning/breaking changes → `references/backend/api-versioning.md`
 - New app scaffold → `assets/templates/django-app-scaffold.py`
+- New project setup order → see `assets/templates/django-app-scaffold.py` SETUP SEQUENCE section
 
 **Frontend tasks:**
 - Redux/service/Zod types → `references/frontend/state-api.md` + `references/frontend/exports-validation.md`
@@ -204,8 +229,13 @@ COMPLEXITY: Low / Medium / High
 
 ### After each task:
 1. Show the completed code
-2. Suggest git commit: `git add . && git commit -m "feat: [task description]"`
-3. Ask: **"Task [X] done ✓ — ready to move to [next task name]?"**
+2. **If the task created or modified a Django model:** run before moving on:
+   ```bash
+   python manage.py makemigrations <app_name>
+   python manage.py migrate
+   ```
+3. Suggest git commit: `git add . && git commit -m "feat: [task description]"`
+4. Ask: **"Task [X] done ✓ — ready to move to [next task name]?"**
 
 ---
 
@@ -232,7 +262,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] `core/serializers.py` has `FilteredListSerializer`
 - [ ] `core/permissions.py` has `GetPermission` factory
 - [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
-- [ ] Migrations created + applied
+- [ ] Migrations created: `python manage.py makemigrations <app_name>` and applied: `python manage.py migrate`
 - [ ] Full `admin.py` registration with soft-delete override
 - [ ] Silk/debug-toolbar checked — zero N+1 confirmed
 
@@ -248,6 +278,7 @@ COMPLEXITY: Low / Medium / High
 - [ ] All UI from `src/components/shared/`
   - [ ] `<Text>` `<Button>` `<FormField>` `<StatusBadge>` `<DataTable>`
   - [ ] `<Modal>` `<PageHeader>` `<EmptyState>` `<LoadingSpinner>` `<ErrorBanner>`
+  - [ ] `<TableSkeleton>` for all list/table page loading states (not `<LoadingSpinner>`)
 - [ ] `React.memo` + `displayName` | `useCallback` | `useMemo` | No `any`
 - [ ] Form errors from `err.errors` | `err.message` in toast | Tailwind only
 
