@@ -1,0 +1,144 @@
+# Backend: Models, BaseModel & Soft Delete
+
+## Project Structure
+```
+backend/
+├── config/
+│   ├── settings/
+│   │   ├── base.py
+│   │   ├── development.py
+│   │   └── production.py
+│   ├── urls.py
+│   └── wsgi.py
+├── core/                        # Shared — never add business logic here
+│   ├── models.py                # BaseModel (abstract)
+│   ├── mixins.py                # AuditMixin, SoftDeleteMixin
+│   ├── serializers.py           # FilteredListSerializer
+│   ├── permissions.py           # GetPermission factory
+│   ├── pagination.py            # DefaultPagination
+│   ├── exceptions.py            # custom_exception_handler
+│   └── factories.py             # Base test factories (UserFactory etc.)
+├── <app>/
+│   ├── migrations/
+│   ├── models.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── filters.py
+│   ├── admin.py
+│   └── tests/
+│       ├── __init__.py          # required for test discovery
+│       ├── factories.py         # app-level factory_boy factories
+│       ├── test_serializers.py  # serializer unit tests
+│       └── test_views.py        # API integration tests
+├── conftest.py                  # project-level shared fixtures
+├── pytest.ini                   # pytest + Django settings config
+└── requirements.txt             # all deps with section comments
+```
+
+## BaseModel (core/models.py)
+ALL models inherit this. Never define id/timestamps/audit fields manually.
+```python
+import uuid
+from django.db import models
+from django.conf import settings
+
+class BaseModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Audit fields — auto-filled via AuditMixin / SoftDeleteMixin in views
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_created')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_updated')
+    deleted_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='%(app_label)s_%(class)s_deleted')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Soft delete fields
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+```
+
+## SoftDeleteMixin + AuditMixin (core/mixins.py)
+```python
+from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework import status
+
+class SoftDeleteMixin:
+    """
+    Soft deletes via is_deleted=True, is_active=False, deleted_at=now(), deleted_by=request.user.
+    NEVER calls instance.delete() — no hard deletes anywhere.
+    """
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.is_active = False
+        instance.deleted_at = timezone.now()
+        instance.deleted_by = self.request.user
+        instance.save(update_fields=[
+            'is_deleted', 'is_active', 'deleted_at', 'deleted_by', 'updated_at'
+        ])
+
+    def destroy(self, request, *args, **kwargs):
+        self.perform_destroy(self.get_object())
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class AuditMixin:
+    """
+    Auto-fills created_by + updated_by on create.
+    Auto-fills updated_by on update.
+    """
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+```
+
+## Model Pattern
+```python
+from django.db import models
+from core.models import BaseModel
+
+class Order(BaseModel):
+    customer = models.ForeignKey('customers.Customer',
+        on_delete=models.PROTECT, related_name='orders')
+    status = models.CharField(max_length=20,
+        choices=[('pending','Pending'),('confirmed','Confirmed'),('cancelled','Cancelled')],
+        default='pending')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Order'
+        verbose_name_plural = 'Orders'
+
+    def __str__(self):
+        return f"Order {self.id} — {self.customer}"
+
+class OrderItem(BaseModel):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey('products.Product',
+        on_delete=models.PROTECT, related_name='order_items')
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        ordering = ['created_at']
+```
+
+## Naming Conventions
+| Element | Convention | Example |
+|---|---|---|
+| Models | PascalCase singular | `OrderItem` |
+| DB fields | snake_case | `total_amount` |
+| App names | snake_case plural | `orders` |
+| URL paths | kebab-case plural | `/api/v1/order-items/` |

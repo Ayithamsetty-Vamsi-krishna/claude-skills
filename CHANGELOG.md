@@ -14,6 +14,49 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
 
+## [2.0.0] — 2026-04-06 — v2 Phase 1: Multi-User Auth + Service Layer + Code Generation
+
+### New: saas-dev (auto-router skill)
+- Single entry point — analyses requirement/PRD and automatically routes to correct specialist skill
+- Routing logic: Auth → django-auth-dev, CRUD → django-backend-dev, Integrations → django-integrations-dev, UI → react-frontend-dev, DevOps → django-devops-dev
+- MCP auto-detection in Phase 0: Supabase MCP (schema inspection), GitHub MCP (PR creation), others as relevant
+- Session context management: CLAUDE.md updated after each specialist skill, context passed between skills
+- All v1.5.2 specialist skills included as sub-skills (django-backend-dev, react-frontend-dev)
+
+### New: django-auth-dev (specialist skill inside saas-dev)
+- Pattern C: truly separate AbstractBaseUser models per user type — each with own DB table
+- One user type is AUTH_USER_MODEL (primary). Others are independent models.
+- Per user type: TokenObtainPairSerializer, JWTAuthentication subclass, login/refresh/logout URLs
+- UserTypeAuthMiddleware: reads user_type JWT claim, routes auth to correct model
+  - Primary type → request.user (standard Django)
+  - Non-primary types → request.<type>_user (e.g. request.customer_user)
+- Custom JWT claims: user_type, user_id, email, role (all embedded at login)
+- Full RBAC: IsStaffUser, IsCustomerUser, IsAnyAuthenticatedUser, IsAdminStaff, IsManagerOrAbove
+- Role hierarchy on staff: admin > manager > agent
+- Token revocation: JWT blacklist on logout, revoke_all_tokens() for security events
+- Reference files: custom-user-models.md, jwt-multi-type.md, auth-middleware.md, rbac-permissions.md, token-revocation.md, auth-testing.md
+- Template: user-type-scaffold.py (add new user type in one file, then update 3 places)
+
+### New: Service layer (in django-backend-dev sub-skill)
+- services.md reference file added
+- Rule: cross-app logic → services/, same-app logic stays in serializer
+- Pattern: @transaction.atomic service classes with select_for_update() for critical sections
+- Testing services independently from views
+- Decision tree: when to create a service vs keep in serializer
+
+### New: Sequential code generation (in django-backend-dev sub-skill)
+- code-generation.md reference file added
+- core/utils.py generate_code() with select_for_update() — gap-free, race-condition safe
+- Configurable: per-tenant (each tenant ORD-0001) or global (one counter)
+- Called from model save() only — never from serializer or view
+- Test patterns including concurrent race condition test
+
+### Architecture
+- saas-dev is the ONLY marketplace install — specialist skills not independently installable
+- All specialist SKILL.md files live at skills/saas-dev/skills/<specialist>/SKILL.md
+- Router SKILL.md loads specialist skill instructions when routing
+- v1.5.2 specialist skills (django-backend-dev, react-frontend-dev) fully preserved inside saas-dev
+
 ## [1.5.2] — 2026-04-02 — Stability & Polish
 
 ### Fixed (all 11 issues from stress test)

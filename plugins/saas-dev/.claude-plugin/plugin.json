@@ -1,0 +1,8 @@
+{
+  "name": "saas-dev",
+  "description": "Full-stack SaaS development skill suite. Single entry point — auto-routes to the right specialist skill for any task: backend CRUD, multi-user auth, third-party integrations, React frontend, real-time features, and DevOps. Built for Django REST Framework + React/TypeScript.",
+  "version": "2.0.0",
+  "author": { "name": "Ayithamsetty Vamsi Krishna" },
+  "category": "development",
+  "keywords": ["django", "react", "saas", "typescript", "drf", "auth", "jwt", "celery", "redis", "docker"]
+}

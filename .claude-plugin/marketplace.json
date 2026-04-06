@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Production-grade Claude Code skills for full-stack Django + React/TypeScript development. Enforces best practices: soft delete, audit fields, ORM optimisation, shared component library, memoization, and comprehensive testing.",
-    "version": "1.5.0"
+    "version": "2.0.0"
   },
   "plugins": [
     {
@@ -62,6 +62,22 @@
         "shadcn",
         "tailwind",
         "skill"
+      ]
+    },
+    {
+      "name": "saas-dev",
+      "description": "Full-stack SaaS development suite for Django + React. Single entry point auto-router \u2014 handles auth (multi-user JWT), CRUD, integrations, frontend, and DevOps.",
+      "version": "2.0.0",
+      "install": "saas-dev@vamsi-claude-skills",
+      "category": "development",
+      "keywords": [
+        "django",
+        "react",
+        "saas",
+        "typescript",
+        "jwt",
+        "auth",
+        "celery"
       ]
     }
   ]

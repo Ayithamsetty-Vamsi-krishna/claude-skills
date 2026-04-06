@@ -1,0 +1,168 @@
+# assets/templates/django-app-scaffold.py
+# Load ONLY when scaffolding a brand new Django app from scratch.
+# Copy-paste and replace <AppName>, <app_name>, <ModelName> as needed.
+
+# ══════════════════════════════════════════════════════════════════════
+# SETUP SEQUENCE — New project, follow in this exact order
+# ══════════════════════════════════════════════════════════════════════
+# 1. Django project
+#    django-admin startproject config .
+#    python manage.py startapp core
+#    Create core/models.py (BaseModel), core/mixins.py, core/serializers.py,
+#    core/permissions.py, core/exceptions.py, core/pagination.py
+#
+# 2. Configure settings
+#    settings/base.py — REST_FRAMEWORK, INSTALLED_APPS, python-decouple
+#    settings/development.py — DEBUG=True, silk, debug_toolbar, CORS_ALLOW_ALL_ORIGINS
+#    Create .env from .env.example, add .env to .gitignore
+#
+# 3. Run initial migrations
+#    python manage.py makemigrations
+#    python manage.py migrate
+#    python manage.py createsuperuser
+#
+# 4. React project (separate terminal / directory)
+#    npm create vite@latest frontend -- --template react-ts
+#    cd frontend && npm install
+#    npm install react-router-dom redux @reduxjs/toolkit react-redux
+#    npm install axios react-hook-form @hookform/resolvers zod
+#    npm install -D @testing-library/react @testing-library/user-event vitest
+#    Create src/app/store.ts, src/app/hooks.ts, src/app/router.tsx
+#    Create src/services/api.ts (Axios + JWT interceptors)
+#    Create .env and .env.example with VITE_API_BASE_URL=http://localhost:8000
+#
+# 5. Connect Django ↔ React
+#    pip install django-cors-headers
+#    settings/base.py: CORS_ALLOWED_ORIGINS from .env
+#    Verify: React dev server (5173) can reach Django (8000) without CORS errors
+#
+# 6. Generate CLAUDE.md
+#    Use assets/templates/CLAUDE.md.template — fill in project name, apps, conventions
+#    Commit CLAUDE.md so all future sessions skip this setup entirely
+# ══════════════════════════════════════════════════════════════════════
+
+# ── core/models.py ────────────────────────────────────────────────────────────
+CORE_MODELS = '''
+import uuid
+from django.db import models
+from django.conf import settings
+
+class BaseModel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="%(app_label)s_%(class)s_created")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="%(app_label)s_%(class)s_updated")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+'''
+
+# ── core/mixins.py ────────────────────────────────────────────────────────────
+CORE_MIXINS = '''
+from django.utils import timezone
+from rest_framework.response import Response
+from rest_framework import status
+
+class SoftDeleteMixin:
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.is_active = False
+        instance.deleted_at = timezone.now()
+        instance.save(update_fields=["is_deleted","is_active","deleted_at","updated_at"])
+    def destroy(self, request, *args, **kwargs):
+        self.perform_destroy(self.get_object())
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class AuditMixin:
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user, updated_by=self.request.user)
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+'''
+
+# ── core/serializers.py ──────────────────────────────────────────────────────
+CORE_SERIALIZERS = '''
+from rest_framework import serializers
+
+class FilteredListSerializer(serializers.ListSerializer):
+    """Auto-filters soft-deleted children on all read operations."""
+    def to_representation(self, data):
+        data = data.filter(is_deleted=False, is_active=True)
+        return super().to_representation(data)
+'''
+
+# ── core/permissions.py ───────────────────────────────────────────────────────
+CORE_PERMISSIONS = '''
+from rest_framework.permissions import BasePermission
+
+def GetPermission(perms=""):
+    """Factory returning a permission class for a specific Django permission string."""
+    class CheckPermission(BasePermission):
+        def has_permission(self, request, view):
+            if not bool(request.user and request.user.is_authenticated):
+                return False
+            if request.user.is_superuser:
+                return True
+            return perms in list(request.user.get_all_permissions())
+    CheckPermission.__name__ = f"CheckPermission_{perms}"
+    return CheckPermission
+'''
+
+# ── core/pagination.py ────────────────────────────────────────────────────────
+CORE_PAGINATION = '''
+from rest_framework.pagination import PageNumberPagination
+
+class DefaultPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
+'''
+
+# ── <app>/models.py ───────────────────────────────────────────────────────────
+APP_MODEL = '''
+from django.db import models
+from core.models import BaseModel
+
+class <ModelName>(BaseModel):
+    # Add your fields here
+    name = models.CharField(max_length=255)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "<ModelName>"
+        verbose_name_plural = "<ModelName>s"
+
+    def __str__(self):
+        return self.name
+'''
+
+# ── <app>/admin.py ────────────────────────────────────────────────────────────
+APP_ADMIN = '''
+from django.contrib import admin
+from .models import <ModelName>
+
+@admin.register(<ModelName>)
+class <ModelName>Admin(admin.ModelAdmin):
+    list_display = ("id", "name", "is_active", "is_deleted", "created_at", "created_by")
+    list_filter = ("is_active", "is_deleted", "created_at")
+    search_fields = ("id", "name")
+    readonly_fields = ("id", "created_at", "updated_at", "created_by", "updated_by", "deleted_at")
+    fieldsets = (
+        ("Details", {"fields": ("name",)}),
+        ("Status", {"fields": ("is_active", "is_deleted", "deleted_at")}),
+        ("Audit", {"classes": ("collapse",),
+                   "fields": ("id", "created_at", "updated_at", "created_by", "updated_by")}),
+    )
+    def delete_model(self, request, obj):
+        from django.utils import timezone
+        obj.is_deleted=True; obj.is_active=False; obj.deleted_at=timezone.now(); obj.save()
+    def delete_queryset(self, request, qs):
+        from django.utils import timezone
+        qs.update(is_deleted=True, is_active=False, deleted_at=timezone.now())
+'''
