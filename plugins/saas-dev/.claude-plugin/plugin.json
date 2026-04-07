@@ -1,8 +1,26 @@
 {
   "name": "saas-dev",
-  "description": "Full-stack SaaS development skill suite. Single entry point — auto-routes to the right specialist skill for any task: backend CRUD, multi-user auth, third-party integrations, React frontend, real-time features, and DevOps. Built for Django REST Framework + React/TypeScript.",
-  "version": "2.0.0",
-  "author": { "name": "Ayithamsetty Vamsi Krishna" },
+  "description": "Full-stack SaaS development suite. Single entry point auto-router \u2014 handles Django project setup (venv, OS-specific), multi-user auth, CRUD backend, integrations, React/Vite SPA, Next.js App Router, Next.js Pages Router, and DevOps. BFF pattern enforced for all Next.js architectures.",
+  "version": "3.0.0",
+  "author": {
+    "name": "Ayithamsetty Vamsi Krishna"
+  },
   "category": "development",
-  "keywords": ["django", "react", "saas", "typescript", "drf", "auth", "jwt", "celery", "redis", "docker"]
+  "keywords": [
+    "django",
+    "react",
+    "nextjs",
+    "saas",
+    "typescript",
+    "jwt",
+    "auth",
+    "celery",
+    "redis",
+    "docker",
+    "venv",
+    "nextauth",
+    "zustand",
+    "app-router",
+    "pages-router"
+  ]
 }

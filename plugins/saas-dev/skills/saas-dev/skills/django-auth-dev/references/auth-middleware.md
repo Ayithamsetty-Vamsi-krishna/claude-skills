@@ -151,3 +151,41 @@ class CustomerProfileView(generics.RetrieveUpdateAPIView):
         return request.customer_user   # ← correct
         # NOT request.user              ← wrong — will be AnonymousUser
 ```
+
+---
+
+## Django CORS + Cookie configuration for Next.js BFF
+
+When the frontend is Next.js (either App Router or Pages Router), the browser
+never calls Django directly. Only the Next.js server calls Django.
+This changes CORS and cookie configuration significantly.
+
+```python
+# settings/base.py — Next.js BFF configuration
+import os
+
+# BFF: only allow requests from the Next.js server
+# The browser never calls Django — Vercel/Docker network calls do
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOW_CREDENTIALS = False   # No credentials needed — BFF handles auth
+# Never: CORS_ALLOW_ALL_ORIGINS = True (production)
+
+# CSRF: exempt API endpoints — Next.js BFF handles its own CSRF
+# (Next.js same-site cookies + CSRF tokens in forms)
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')
+
+# Django sets no cookies — Next.js BFF manages all session cookies
+SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE   = os.environ.get('NODE_ENV') == 'production'
+```
+
+```python
+# Django .env additions for Next.js deployment
+# CORS_ALLOWED_ORIGINS=https://yourapp.vercel.app,http://nextjs:3000
+# CSRF_TRUSTED_ORIGINS=https://yourapp.vercel.app
+```
+
+**Key rule:** Django only needs to trust the Next.js server address, not user browsers.
+In Docker, this is the internal network address (e.g. `http://nextjs:3000`).
+On Vercel, this is the Vercel deployment URL.
