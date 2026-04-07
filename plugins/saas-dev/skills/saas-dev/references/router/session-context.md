@@ -64,3 +64,64 @@ Existing endpoints: [list]
 Constraints: [any cross-skill constraints]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+---
+
+## CLAUDE.md format for Next.js projects
+
+When the frontend is Next.js (either router), the CLAUDE.md format expands:
+
+```markdown
+## Frontend
+Framework: Next.js 15 App Router   ← or "Pages Router"
+Auth type: NextAuth.js v5           ← or "Custom httpOnly cookie"
+BFF: Yes — all Django calls via /api/* Route Handlers
+Repo structure: Monorepo (frontend/ + backend/)  ← or "Separate repos"
+Deployment: Vercel                  ← or "Docker", "Both"
+
+## BFF Route Handlers
+  POST /api/auth/login     → Django /api/v1/auth/staff/login/
+  GET  /api/jobs           → Django /api/v1/jobs/
+  POST /api/jobs           → Django /api/v1/jobs/
+  GET  /api/jobs/[id]      → Django /api/v1/jobs/<id>/
+  PATCH /api/jobs/[id]     → Django /api/v1/jobs/<id>/
+  DELETE /api/jobs/[id]    → Django /api/v1/jobs/<id>/
+
+## Next.js Pages (App Router)
+  app/(auth)/login/page.tsx
+  app/(dashboard)/jobs/page.tsx
+  app/(dashboard)/jobs/[id]/page.tsx
+  app/(customer)/portal/page.tsx
+
+## Zustand Stores (App Router only)
+  useJobsStore — UI state: selectedJobId, isCreateModalOpen, statusFilter
+  useToastStore — notifications
+
+## Django API base (server-side only, NO NEXT_PUBLIC_)
+  DJANGO_API_URL=http://localhost:8000
+  CORS_ALLOWED_ORIGINS: http://localhost:3000 (Next.js server only)
+```
+
+## Context handoff: backend → Next.js skill
+
+When handing off from django-backend-dev to nextjs-*-router-dev:
+
+```
+CONTEXT FROM BACKEND:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Django endpoints available:
+  Staff (JWT required):
+    GET/POST  /api/v1/jobs/
+    GET/PATCH/DELETE /api/v1/jobs/<id>/
+  Customer (JWT required):
+    GET /api/v1/customer/jobs/
+
+BFF routes to create (Next.js wraps all of these):
+  app/api/jobs/route.ts        ← GET + POST
+  app/api/jobs/[id]/route.ts   ← GET + PATCH + DELETE
+  app/api/customer/jobs/route.ts ← GET
+
+Auth: request.user (staff) | request.customer_user (customer)
+Cookie set by: Next.js /api/auth/login Route Handler
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```

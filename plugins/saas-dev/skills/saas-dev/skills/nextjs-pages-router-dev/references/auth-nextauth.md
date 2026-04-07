@@ -59,3 +59,63 @@ export default NextAuth({
 ```
 
 ---
+---
+
+## Reading session server-side — getServerSession
+
+```typescript
+// pages/jobs/index.tsx — get session in getServerSideProps
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../api/auth/[...nextauth]'
+import type { GetServerSideProps } from 'next'
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const session = await getServerSession(ctx.req, ctx.res, authOptions)
+
+  if (!session) {
+    return { redirect: { destination: '/login', permanent: false } }
+  }
+
+  // Use session.user fields set in callbacks above
+  return { props: { userType: session.user.user_type } }
+}
+```
+
+## Reading session client-side — useSession
+
+```tsx
+// components/Navbar.tsx
+'use client is NOT needed in Pages Router — all components are client-side'
+import { useSession, signOut } from 'next-auth/react'
+
+export function Navbar() {
+  const { data: session, status } = useSession()
+  if (status === 'loading') return <Skeleton />
+  if (!session) return null
+
+  return (
+    <nav>
+      <span>{session.user.name}</span>
+      <button onClick={() => signOut({ callbackUrl: '/login' })}>Sign out</button>
+    </nav>
+  )
+}
+```
+
+## Export authOptions for reuse across API routes
+
+```typescript
+// pages/api/auth/[...nextauth].ts
+import NextAuth, { type NextAuthOptions } from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
+
+// Export authOptions so getServerSession can import it
+export const authOptions: NextAuthOptions = {
+  providers: [ CredentialsProvider({ /* ...same as above */ }) ],
+  callbacks: { /* ...same as above */ },
+  pages: { signIn: '/login' },
+  secret: process.env.AUTH_SECRET,
+}
+
+export default NextAuth(authOptions)
+```

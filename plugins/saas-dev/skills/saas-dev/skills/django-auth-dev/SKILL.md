@@ -24,8 +24,16 @@ multi-user authentication systems. Follow this skill precisely.
 - **Existing project** → check CLAUDE.md for existing user models
 
 ### Step 2: Check CLAUDE.md
-- Exists → read for existing user types, models, JWT setup
+- Exists → read for existing user types, models, JWT setup, **and frontend framework**
 - New project → generate after first task
+
+**If CLAUDE.md shows Next.js frontend:** Auth token delivery changes.
+JWT must be stored in httpOnly cookies (not localStorage) because:
+- Next.js Server Components cannot access localStorage (runs on server)
+- httpOnly cookies are XSS-safe and work across SSR/client
+
+Note this in the analysis and generate the Django CORS + cookie settings
+from `references/auth-middleware.md` (Next.js BFF section).
 
 ### Step 3: Analyse existing auth (if any)
 Check for: existing User model, JWT configuration, any AbstractBaseUser subclasses,

@@ -38,12 +38,25 @@ Where are you deploying?
 If "Search for best option" → web_search for Django + React deployment comparison,
 present top 3 options with pros/cons, then ask user to choose.
 
-2. **Services needed in Docker:**
+2. **Frontend framework:**
+```
+What is the frontend?
+→ [React/Vite — served as static files via Nginx]
+→ [Next.js — requires Node.js container (standalone output)]
+→ [API only — no frontend in this repo]
+```
+
+3. **Services needed in Docker:**
 ```
 Which services does your project use?
-→ [Django] [React dev server] [PostgreSQL] [Redis] [Celery worker] [Celery beat] [Nginx]
+→ [Django] [Next.js / React frontend] [PostgreSQL] [Redis] [Celery worker] [Celery beat] [Nginx]
 (select all that apply)
 ```
+
+**Next.js Docker note:** Next.js requires a Node.js runtime container — it cannot be
+served as static files like React/Vite. Use `output: 'standalone'` in `next.config.ts`
+and a separate `node:20-alpine` container. See `references/deployment.md` for the
+full docker-compose with both Django + Next.js containers.
 
 3. **CI/CD scope:**
 ```
@@ -71,8 +84,9 @@ SERVICES: [list]
 
 TASKS
 ─────
-D1: Dockerfile (Django multi-stage + React build)
-D2: docker-compose.yml (local dev + production)
+D1: Dockerfile (Django multi-stage)
+D1b: Dockerfile for Next.js (Node.js runtime + standalone output) — if Next.js
+D2: docker-compose.yml (local dev + production, includes Node.js container if Next.js)
 D3: GitHub Actions CI — test on PR
 D4: GitHub Actions CD — deploy on merge
 D5: Environment configuration
@@ -105,6 +119,9 @@ ENV VARS NEEDED: [list]
 
 - [ ] Multi-stage Dockerfile — builder stage + minimal runner stage
 - [ ] `.dockerignore` created — excludes node_modules, .env, __pycache__
+- [ ] If Next.js: `output: 'standalone'` in `next.config.ts`
+- [ ] If Next.js: Node.js container (not Nginx static) in docker-compose.yml
+- [ ] If Next.js: `DJANGO_API_URL` set to internal Docker network (e.g. `http://backend:8000`)
 - [ ] docker-compose.yml — all services connected, volumes for DB data
 - [ ] Health checks on Django and Redis services
 - [ ] All secrets in GitHub Actions secrets (not in YAML files)

@@ -48,10 +48,12 @@ A library that says "use client" (Stripe.js, charts, etc.)?
 
 import { djangoGet } from '@/lib/api'
 import { JobTable } from './JobTable'       // Client Component
-import type { JobCard } from '@/types'
 
+// ⚠️ Next.js 15 breaking change: params and searchParams are now async Promises
+// Always await them — do NOT destructure directly from props
 interface JobsPageProps {
-  searchParams: Promise<{ status?: string; page?: string }>  // Next.js 15: async
+  params:       Promise<{ id: string }>         // ← async in Next.js 15
+  searchParams: Promise<{ status?: string }>    // ← async in Next.js 15
 }
 
 export default async function JobsPage({ searchParams }: JobsPageProps) {

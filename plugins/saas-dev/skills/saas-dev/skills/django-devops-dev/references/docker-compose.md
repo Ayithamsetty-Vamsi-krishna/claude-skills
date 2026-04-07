@@ -188,3 +188,35 @@ docker-compose down
 # Stop and remove volumes (reset DB)
 docker-compose down -v
 ```
+
+---
+
+## Next.js in docker-compose (requires Node.js container, not Nginx)
+
+When the frontend is Next.js, replace the static Nginx frontend with a Node.js container.
+Full docker-compose with Django + Next.js is in:
+`skills/nextjs-app-router-dev/references/deployment.md`
+
+Key differences from React/Vite:
+```yaml
+# React/Vite — static files served by Nginx
+frontend:
+  image: nginx:alpine
+  # serves /app/dist as static files
+
+# Next.js — requires Node.js runtime (output: 'standalone')
+nextjs:
+  build:
+    context: ./frontend
+    target: runner        # multi-stage: deps → builder → runner
+  environment:
+    DJANGO_API_URL: http://backend:8000   # internal Docker network
+    AUTH_SECRET: ${AUTH_SECRET}
+  ports:
+    - "3000:3000"
+  # No Nginx needed — Next.js serves itself
+```
+
+**Critical env var rule for Next.js in Docker:**
+- `DJANGO_API_URL` — no `NEXT_PUBLIC_` prefix, server-only, points to Django container
+- Never expose Django URL to browser — BFF handles all proxying

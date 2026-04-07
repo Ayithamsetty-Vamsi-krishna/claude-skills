@@ -260,3 +260,44 @@ python manage.py runserver
 # Django version 4.2.x, using settings 'config.settings.development'
 # Starting development server at http://127.0.0.1:8000/
 ```
+
+---
+
+## Generate CLAUDE.md after setup (REQUIRED — do this before any other skill runs)
+
+After `manage.py runserver` confirms the project is working, generate `CLAUDE.md`
+at the project root. This is the handoff contract to all other specialist skills.
+
+```markdown
+# CLAUDE.md — [Project Name]
+# Generated: django-project-setup phase complete
+
+## Project
+Name: [project name]
+Stack: Django REST Framework + [React/Vite | Next.js App Router | Next.js Pages Router | API only]
+Status: Setup complete — no business logic yet
+
+## Environment
+Python: [version]
+OS: [Mac | Windows | Linux]
+venv: .venv/ (activate: source .venv/bin/activate | .venv\Scripts\activate)
+Settings: config.settings.development (local) | config.settings.production (deploy)
+
+## Database
+Engine: [PostgreSQL | SQLite]
+URL env var: DATABASE_URL in .env
+
+## Apps created
+- core/ (shared BaseModel, mixins, permissions, pagination, exceptions)
+[list any additional apps created]
+
+## Auth (not yet configured)
+→ Run django-auth-dev next
+
+## Backend (not yet configured)
+→ Run django-backend-dev after auth
+
+## Frontend
+Framework: [React/Vite | Next.js App Router | Next.js Pages Router | None]
+→ Run [react-frontend-dev | nextjs-app-router-dev | nextjs-pages-router-dev] after backend
+```

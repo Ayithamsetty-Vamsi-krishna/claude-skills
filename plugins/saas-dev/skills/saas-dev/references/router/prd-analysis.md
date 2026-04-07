@@ -17,13 +17,19 @@ Read the entire PRD. Build a flat list of every feature described:
 ```
 Feature → Skill mapping:
 
+No CLAUDE.md + new project confirmed → django-project-setup (FIRST, before all)
 Any "user", "login", "auth", "role" → django-auth-dev
 Any model/entity with fields → django-backend-dev
 Any named third-party service → django-integrations-dev
-Any "page", "screen", "UI", "dashboard" → react-frontend-dev
+Any "page", "screen", "UI", "dashboard" (no Next.js) → react-frontend-dev
+Any "Next.js", "App Router", "server components" → nextjs-app-router-dev
+Any "Pages Router", "getServerSideProps" → nextjs-pages-router-dev
+Any "Next.js" (unspecified) → ask which router
 Any "deploy", "Docker", "CI" → django-devops-dev
 Any "email", "SMS", "background" → django-backend-dev (tasks)
 Any "real-time", "live", "WebSocket" → django-integrations-dev
+
+⚠️ Next.js swap rule: if any Next.js skill is in plan, remove react-frontend-dev entirely
 ```
 
 ### Step 3 — Identify dependencies
@@ -55,8 +61,11 @@ PHASE 2 — Backend (django-backend-dev)
 PHASE 3 — Integrations (django-integrations-dev)
   - [list third-party services]
 
-PHASE 4 — Frontend (react-frontend-dev)
-  - [list all pages and components]
+PHASE 4 — Frontend
+  React/Vite (default):  react-frontend-dev — [pages, components]
+  OR Next.js App Router: nextjs-app-router-dev — [pages, BFF routes, Zustand stores]
+  OR Next.js Pages Router: nextjs-pages-router-dev — [pages, BFF routes, Redux slices]
+  (Never use react-frontend-dev AND a Next.js skill together)
 
 PHASE 5 — DevOps (django-devops-dev)
   - Docker + CI/CD setup

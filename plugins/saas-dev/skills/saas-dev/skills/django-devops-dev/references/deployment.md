@@ -334,3 +334,71 @@ jobs:
 feature branch → PR → review → merge to develop → auto-deploy staging
 staging testing OK → merge develop to main → tag release → manual approve → deploy production
 ```
+
+---
+
+## Next.js deployment considerations
+
+When the frontend is Next.js (App Router or Pages Router), deployment differs
+from a static React/Vite build. Always confirm with the user which applies.
+
+### Key difference: Next.js requires Node.js runtime
+
+```
+React/Vite:  npm run build → static dist/ → served by Nginx (no Node.js)
+Next.js:     npm run build → .next/ + server.js → requires Node.js 20 to run
+```
+
+### next.config.ts — required for self-hosted Docker
+
+```typescript
+// frontend/next.config.ts
+const nextConfig = {
+  output: 'standalone',  // ← produces minimal self-contained build for Docker
+}
+export default nextConfig
+```
+
+### Platform recommendations for Next.js frontend
+
+| Platform | Django backend | Next.js frontend | Notes |
+|---|---|---|---|
+| Render | Render web service | Render web service (Node) | Simple, same platform |
+| Railway | Railway service | Railway service (Node) | Good DX |
+| Vercel + Render | Render | Vercel | Optimal — Vercel is built for Next.js |
+| Self-hosted | Docker | Docker (Node container) | Use standalone output |
+| AWS | ECS/EC2 | ECS/Vercel/Amplify | Most flexible |
+
+### CORS reminder for Next.js BFF
+
+```python
+# Django settings — allow only the Next.js SERVER, not the browser
+# Browser → Next.js Route Handler → Django (BFF pattern)
+CORS_ALLOWED_ORIGINS = [
+    'http://nextjs:3000',               # Docker internal
+    'https://yourapp.vercel.app',       # Vercel
+    'https://your-nextjs.onrender.com', # Render
+]
+# Never CORS_ALLOW_ALL_ORIGINS = True in production
+```
+
+### GitHub Actions — add Next.js build job alongside Django
+
+```yaml
+# .github/workflows/ci.yml addition for Next.js
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm', cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+        env:
+          DJANGO_API_URL: http://localhost:8000
+          AUTH_SECRET: test-secret-for-build
+          NEXT_PUBLIC_APP_NAME: AutoServe
+```

@@ -17,6 +17,7 @@ npm install @reduxjs/toolkit react-redux
 npm install react-hook-form @hookform/resolvers zod
 npm install swr
 npm install next-auth          # NextAuth.js v4 for Pages Router
+npm install cookies-next          # cookie helpers for API routes + getServerSideProps
 npm install clsx tailwind-merge
 npx shadcn@latest init
 ```

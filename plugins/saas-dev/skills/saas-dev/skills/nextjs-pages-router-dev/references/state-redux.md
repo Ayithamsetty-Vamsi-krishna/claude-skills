@@ -74,3 +74,52 @@ export function JobsView({ initialJobs }: { initialJobs: JobCard[] }) {
 ```
 
 ---
+
+## store/index.ts — configure Redux store
+
+```typescript
+// src/store/index.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { api } from './api'
+
+export const store = configureStore({
+  reducer: {
+    [api.reducerPath]: api.reducer,
+    // Add other slice reducers here
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(api.middleware),
+})
+
+export type RootState   = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+```
+
+## Store wiring in _app.tsx — required for Pages Router
+
+```tsx
+// src/pages/_app.tsx
+import type { AppProps } from 'next/app'
+import { Provider } from 'react-redux'
+import { store } from '@/store'
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    // Provider must wrap everything — RTK Query hooks need the store
+    <Provider store={store}>
+      <Component {...pageProps} />
+    </Provider>
+  )
+}
+```
+
+## Typed hooks — always use these, not raw useSelector/useDispatch
+
+```typescript
+// src/store/hooks.ts
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState, AppDispatch } from '.'
+
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector = <T>(selector: (s: RootState) => T) => useSelector(selector)
+```

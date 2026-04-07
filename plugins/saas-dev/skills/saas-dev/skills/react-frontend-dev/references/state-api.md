@@ -1,4 +1,12 @@
 # Frontend: State Management & API Layer
+> ⚠️ **This file is for React/Vite (SPA) only.**
+> If your project uses **Next.js** (App Router or Pages Router), do NOT use these patterns:
+> - `localStorage` for tokens → use httpOnly cookies via Next.js BFF Route Handlers
+> - `import.meta.env.VITE_*` → use `process.env.NEXT_PUBLIC_*`
+> - Axios calling Django directly → use `fetch('/api/*')` to call Next.js BFF
+> See `nextjs-app-router-dev/references/bff-api-routes.md` instead.
+
+
 
 ## Project Structure
 ```

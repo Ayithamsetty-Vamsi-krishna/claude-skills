@@ -110,6 +110,7 @@ COMPLEXITY: Low
 - Linux venv → `references/venv-linux.md`
 - requirements.txt template → `references/requirements-template.md`
 - startproject + settings → `references/startproject.md`
+- Next.js project creation (if Next.js selected) → `references/nextjs-startproject.md`
 
 ### After each task:
 1. Show exact commands to run

@@ -169,3 +169,80 @@ AWS_ACCESS_KEY_ID       → if using S3
 AWS_SECRET_ACCESS_KEY
 SENTRY_DSN              → if using Sentry
 ```
+
+---
+
+## Frontend CI — Next.js (Vitest + Playwright)
+
+```yaml
+# .github/workflows/ci.yml — add this job alongside test-backend
+  test-nextjs:
+    name: Next.js Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: cd frontend && npm ci
+
+      - name: Type check
+        run: cd frontend && npx tsc --noEmit
+
+      - name: Unit tests (Vitest)
+        run: cd frontend && npm run test -- --run --coverage
+        env:
+          DJANGO_API_URL: http://localhost:8000
+          AUTH_SECRET: ci-test-secret
+
+      - name: Build check (catches Next.js compile errors)
+        run: cd frontend && npm run build
+        env:
+          DJANGO_API_URL: http://localhost:8000
+          AUTH_SECRET: ci-test-secret
+          NEXT_PUBLIC_APP_NAME: CI
+
+  test-e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-nextjs]   # run after unit tests pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: cd frontend && npm ci && npx playwright install --with-deps chromium
+
+      - name: Start Django (background)
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          python manage.py migrate --settings=config.settings.testing
+          python manage.py runserver 8000 &
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.testing
+
+      - name: Start Next.js (background)
+        run: cd frontend && npm run build && npm start &
+        env:
+          DJANGO_API_URL: http://localhost:8000
+          AUTH_SECRET: ci-secret
+
+      - name: Wait for services
+        run: npx wait-on http://localhost:3000 http://localhost:8000/health/
+
+      - name: Run Playwright
+        run: cd frontend && npx playwright test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+```

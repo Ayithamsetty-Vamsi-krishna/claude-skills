@@ -49,3 +49,50 @@ export default function App({ Component, pageProps }: AppProps) {
   return <Provider store={store}>{getLayout(<Component {...pageProps} />)}</Provider>
 }
 ```
+
+---
+
+## Centralised auth guard (Pages Router middleware equivalent)
+
+Pages Router has no `middleware.ts` in the App Router sense.
+Use `getServerSideProps` per page OR a shared `withAuth` HOC:
+
+```typescript
+// src/lib/withAuth.ts — Higher-Order Component for auth protection
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from 'next'
+import { getCookie } from 'cookies-next'
+
+type GSPHandler<T> = (
+  ctx: GetServerSidePropsContext,
+  token: string
+) => Promise<GetServerSidePropsResult<T>>
+
+export function withAuth<T extends Record<string, unknown>>(
+  handler: GSPHandler<T>,
+  redirectTo = '/login'
+) {
+  return async (ctx: GetServerSidePropsContext): Promise<GetServerSidePropsResult<T>> => {
+    const token = getCookie('access_token', ctx) as string | undefined
+
+    if (!token) {
+      return {
+        redirect: {
+          destination: `${redirectTo}?callbackUrl=${ctx.resolvedUrl}`,
+          permanent: false,
+        },
+      }
+    }
+
+    return handler(ctx, token)
+  }
+}
+
+// Usage — replaces repeating the auth check in every getServerSideProps:
+export const getServerSideProps = withAuth(async (ctx, token) => {
+  const res = await fetch(`${process.env.DJANGO_API_URL}/api/v1/jobs/`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await res.json()
+  return { props: { jobs: data.results, count: data.count } }
+})
+```
