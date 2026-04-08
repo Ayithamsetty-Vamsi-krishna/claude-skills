@@ -25,7 +25,14 @@ No Server Components. No `'use client'` directive needed. Data flows through
 
 ## PHASE 0 — INPUT GATHERING
 
-### Step 1: Check CLAUDE.md (long session checkpoint)
+### Step 1: Identify input type FIRST
+- **Direct instruction** → read carefully, extract requirement
+- **PDF PRD** → extract text first, then continue
+  - Claude.ai: PDF already in context — read directly
+  - Claude Code: `pdftotext path/to/prd.pdf -`
+- **Multiple features / full PRD** → extract all features, plan sequence
+
+### Step 2: Check CLAUDE.md (long session checkpoint)
 - Exists → read for Django API base URL, auth setup, existing endpoints
 - Absent → new project, generate after setup
 

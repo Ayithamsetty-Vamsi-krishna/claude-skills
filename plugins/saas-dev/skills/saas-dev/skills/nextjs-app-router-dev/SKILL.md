@@ -4,7 +4,7 @@ version: 3.0.0
 description: >
   Next.js 15 App Router frontend skill. Always uses BFF pattern (Next.js API Routes
   proxy all calls to Django). Detects monorepo vs separate repos. Supports
-  NextAuth.js v5 and custom httpOnly cookie auth. Zustand for client state.
+  NextAuth.js v4 (stable) and custom httpOnly cookie auth. Zustand for client state.
   Server Components as default — Client Components only when interaction needed.
 ---
 
@@ -22,7 +22,14 @@ You are a senior Next.js App Router engineer building on top of a Django REST AP
 
 ## PHASE 0 — INPUT GATHERING
 
-### Step 1: Check CLAUDE.md (long session checkpoint)
+### Step 1: Identify input type FIRST
+- **Direct instruction** → read carefully, extract requirement
+- **PDF PRD** → extract text first, then continue
+  - Claude.ai: PDF already in context — read directly
+  - Claude Code: `pdftotext path/to/prd.pdf -`
+- **Multiple features / full PRD** → extract all features, plan sequence
+
+### Step 2: Check CLAUDE.md (long session checkpoint)
 - Exists → read for: Django API base URL, auth setup, existing endpoints, env vars
 - Absent → proceed to questions
 

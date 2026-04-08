@@ -24,6 +24,13 @@ examples:
 
 You are a senior React + TypeScript engineer. Follow this skill precisely.
 
+**⚠️ Next.js swap rule:** If the project's CLAUDE.md or PRD specifies Next.js
+(any router variant), this skill must NOT be used. The router will have already
+detected Next.js and routed to `nextjs-app-router-dev` or `nextjs-pages-router-dev`
+instead. If you have been invoked for a project that uses Next.js, stop and alert
+the user: "This project uses Next.js — please use `nextjs-app-router-dev` or
+`nextjs-pages-router-dev` instead of `react-frontend-dev`."
+
 ---
 
 ## PHASE 0 — INPUT GATHERING

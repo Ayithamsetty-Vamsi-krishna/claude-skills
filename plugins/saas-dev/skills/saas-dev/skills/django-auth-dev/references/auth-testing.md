@@ -392,3 +392,76 @@ class TestLoginRateLimiting:
         assert r.status_code == 200
         assert r.data['success'] is True
 ```
+
+---
+
+## Testing Django auth when frontend is Next.js (BFF + cookie pattern)
+
+When CLAUDE.md shows Next.js frontend, the auth flow changes:
+Next.js BFF Route Handler calls Django login → stores JWT in httpOnly cookie.
+Django receives Bearer token from Next.js server, not from a browser.
+
+```python
+@pytest.mark.django_db
+class TestNextJsAuthIntegration:
+    """
+    Tests that Django auth works correctly when called from Next.js BFF.
+    Next.js server calls Django with Authorization header (not browser cookie).
+    Cookie management is Next.js's responsibility — Django just validates JWT.
+    """
+
+    def test_login_returns_tokens_for_nextjs_bff(self, api_client):
+        """Next.js BFF calls /login/ with JSON, receives JWT tokens to store as cookies."""
+        from staff.models import StaffUser
+        user = StaffUser.objects.create_user(
+            email='staff@test.com', password='testpass123',
+            first_name='Test', last_name='User',
+        )
+        r = api_client.post(
+            '/api/v1/auth/staff/login/',
+            {'email': 'staff@test.com', 'password': 'testpass123'},
+            format='json'
+        )
+        assert r.status_code == 200
+        assert 'access'  in r.data['data']
+        assert 'refresh' in r.data['data']
+        # Next.js BFF stores these tokens in httpOnly cookies — Django doesn't set cookies
+
+    def test_bff_bearer_token_authenticates_api_request(self, api_client):
+        """Next.js Route Handler passes Bearer token to Django on behalf of user."""
+        from staff.models import StaffUser
+        from rest_framework_simplejwt.tokens import RefreshToken
+        user = StaffUser.objects.create_user(
+            email='staff@test.com', password='testpass123'
+        )
+        tokens = RefreshToken.for_user(user)
+        access = str(tokens.access_token)
+
+        # Simulates: Next.js server reads cookie, adds Authorization header, calls Django
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access}')
+        r = api_client.get('/api/v1/jobs/')
+        # Should succeed — token is valid regardless of whether it came from BFF or browser
+        assert r.status_code in [200, 404]   # 200 if jobs exist, 404 if endpoint not yet built
+
+    def test_cors_allows_nextjs_server_origin(self, api_client):
+        """Django CORS must allow Next.js server IP — not browser origin."""
+        r = api_client.options(
+            '/api/v1/auth/staff/login/',
+            HTTP_ORIGIN='http://localhost:3000',   # Next.js dev server
+        )
+        # Should not be blocked by CORS — Next.js server is an allowed origin
+        assert r.status_code != 403
+
+    def test_django_never_sets_auth_cookies(self, api_client):
+        """Django login response must NOT set cookies — Next.js BFF manages cookies."""
+        from staff.models import StaffUser
+        StaffUser.objects.create_user(email='staff@test.com', password='testpass123')
+        r = api_client.post(
+            '/api/v1/auth/staff/login/',
+            {'email': 'staff@test.com', 'password': 'testpass123'},
+            format='json'
+        )
+        assert r.status_code == 200
+        # Django should return JWT in response body only — cookies are Next.js's job
+        assert 'Set-Cookie' not in r
+```

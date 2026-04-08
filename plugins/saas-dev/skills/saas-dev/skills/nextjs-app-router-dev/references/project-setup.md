@@ -145,7 +145,7 @@ frontend/src/
 
 ```bash
 # Auth (choose one)
-npm install next-auth@beta                          # NextAuth.js v5
+npm install next-auth                               # NextAuth.js v4 stable
 # OR: no extra package for custom cookie auth
 
 # State management

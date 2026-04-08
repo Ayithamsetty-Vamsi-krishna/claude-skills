@@ -48,20 +48,14 @@ export const config = {
 
 ---
 
-## Middleware with NextAuth.js v5
+## Middleware with NextAuth.js v4 (withAuth — built-in)
 
-```typescript
-// src/middleware.ts — simpler with NextAuth
-export { auth as middleware } from '@/auth'
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth).*)'],
-}
-```
+See `auth-nextauth.md` → middleware.ts section for the recommended withAuth pattern.
+This is the standard v4 approach — no custom middleware needed for basic auth.
 
 ---
 
-## Role-based middleware (staff vs customer)
+## Role-based middleware (staff vs customer) — custom pattern
 
 ```typescript
 // src/middleware.ts — RBAC in middleware

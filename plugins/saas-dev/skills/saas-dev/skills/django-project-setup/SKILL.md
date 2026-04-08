@@ -18,7 +18,13 @@ hours of debugging later.
 
 ## PHASE 0 — DETECT PROJECT STATE
 
-### Step 1: Check CLAUDE.md
+### Step 1: Identify input type FIRST
+- **Direct instruction** → read carefully, extract requirement
+- **PDF PRD** → extract text first, then continue
+  - Claude.ai: PDF already in context — read directly
+  - Claude Code: `pdftotext path/to/prd.pdf -`
+
+### Step 2: Check CLAUDE.md
 - **CLAUDE.md exists** → existing project already set up. Ask: "What needs to change in the setup?"
 - **CLAUDE.md absent** → ask the user:
 

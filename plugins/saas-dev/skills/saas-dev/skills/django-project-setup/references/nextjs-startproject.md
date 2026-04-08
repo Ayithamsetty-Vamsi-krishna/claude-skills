@@ -24,7 +24,7 @@ cd frontend
 # Install additional dependencies
 npm install zustand swr
 npm install react-hook-form @hookform/resolvers zod
-npm install next-auth@beta      # NextAuth.js v5 (App Router)
+npm install next-auth            # NextAuth.js v4 stable (works for both App + Pages Router)
 npm install clsx tailwind-merge
 npx shadcn@latest init          # component library
 
