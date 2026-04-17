@@ -74,6 +74,14 @@ ask_user_input_v0:
    If multi-tenant, the backend skill loads `references/multi-tenancy.md`
    and all models inherit `TenantAwareBaseModel` instead of plain `BaseModel`.
    This decision is locked in at setup — switching later requires a data migration.
+
+6. Will this app need full-text search?
+   → [No — not needed yet]
+   → [Yes — PostgreSQL full-text search (no extra infra, good for <1M records)]
+   → [Yes — Elasticsearch (for scale, fuzzy matching, facets)]
+   → [Yes — ask during backend phase once data volume is clearer]
+   If chosen, the backend skill loads `references/search-postgres.md` OR
+   `references/search-elasticsearch.md` when creating searchable models.
 ```
 
 **Only proceed once all questions are answered.**
@@ -170,6 +178,13 @@ COMPLEXITY: Low
 **If 2FA planned (user answered yes to auth 2FA question):**
 - [ ] §7 ADR captures 2FA enforcement policy (mandatory/optional/admins-only)
 - [ ] Mark CLAUDE.md so auth skill knows to load `2fa-totp.md` during auth phase
+
+**If search backend chosen at setup:**
+- [ ] §7 ADR captures search backend choice (Postgres FTS / Elasticsearch / deferred)
+- [ ] For Elasticsearch: §5 env vars include ELASTICSEARCH_URL, ELASTICSEARCH_USER, ELASTICSEARCH_PASSWORD
+- [ ] For Elasticsearch: §6 third_party_integrations row added
+- [ ] Mark CLAUDE.md so backend skill loads the matching search reference
+- [ ] Note in §9 recent_changes: "Search backend selected: [Postgres|Elasticsearch]"
 
 ---
 

@@ -204,6 +204,9 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - Redis caching → route to `django-integrations-dev` → `references/caching.md`
 - Audit log (who did what, when, from where) → `references/audit-log.md`
 - Multi-tenancy (shared-schema with tenant_id) → `references/multi-tenancy.md` (only if multi-tenant chosen at setup)
+- Feature flags (custom implementation) → `references/feature-flags.md`
+- Full-text search — PostgreSQL → `references/search-postgres.md` (default for <1M records)
+- Full-text search — Elasticsearch → `references/search-elasticsearch.md` (for scale or fuzzy/faceted search)
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 
@@ -276,6 +279,36 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - [ ] Admin uses `.all_tenants()` to bypass default filtering
 - [ ] Celery tasks wrapped in `TenantContext(tenant=...)` context manager
 - [ ] Test: queryset returns 0 rows when accessed from wrong tenant context
+
+**If feature flags are used:**
+- [ ] `FeatureFlag` model created with OFF/ON/ROLLOUT/TARGETED states
+- [ ] `FeatureFlagsMiddleware` registered AFTER TenantMiddleware
+- [ ] Flag cache invalidated on `post_save` and `m2m_changed` signals
+- [ ] Flag keys follow `<area>.<feature-name>` dotted-kebab convention
+- [ ] Views use `feature_flag_required` decorator or `FeatureFlagRequired` mixin (returns 404 not 403)
+- [ ] `last_toggled_by` + `last_toggled_at` populated in admin `save_model`
+- [ ] Frontend-visible flags exposed via `/api/flags` endpoint with allow-list
+- [ ] Celery tasks use `is_enabled_for_user()` helper (no request in worker)
+- [ ] Test: rollout is sticky (same user always same bucket), kill switch wins
+
+**If full-text search is enabled (Postgres):**
+- [ ] `SearchableMixin` added to searchable models with declared `search_fields` weights
+- [ ] GIN index on `search_vector`; composite `(tenant, search_vector)` for multi-tenant
+- [ ] Signal OR DB trigger rebuilds `search_vector` on every save
+- [ ] Every search query filters by `tenant` FIRST (missing = data leak)
+- [ ] `ts_headline` used for highlighted snippets in API response
+- [ ] `reindex_search` management command available for bulk rebuild
+- [ ] Test: cross-tenant isolation — search in tenant B cannot find tenant A rows
+
+**If full-text search is enabled (Elasticsearch):**
+- [ ] `@registry.register_document` on each searchable Document class
+- [ ] `tenant_id` indexed as KeywordField on every document
+- [ ] Index name prefixed with `{APP_NAME}_{ENV}_` — no cross-env pollution
+- [ ] Analyzer chain: `lowercase_analyzer` + stop/stem; `autocomplete_analyzer` if used
+- [ ] EVERY query calls `.filter('term', tenant_id=str(tenant.pk))` FIRST
+- [ ] Health check endpoint added to monitoring
+- [ ] `search_index --populate` command verified in CI/deploy pipeline
+- [ ] Test: cross-tenant isolation — manual assertion since no ORM auto-filter
 
 ---
 
