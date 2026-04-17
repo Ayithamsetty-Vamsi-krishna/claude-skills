@@ -79,6 +79,13 @@ Never re-implement what already exists — extend it.
 6. **OAuth/social auth needed?**
    → [No — email/password only] [Yes — which providers: Google/GitHub/Microsoft]
 
+7. **Two-factor authentication (2FA) for staff users?**
+   → [Yes — mandatory for all staff (enterprise default)]
+   → [Yes — optional, user can enable in profile]
+   → [Yes — mandatory for admins only, optional for other roles]
+   → [No — skip 2FA for now]
+   If 2FA is enabled, load `references/2fa-totp.md` during implementation.
+
 **Only proceed to Phase 1 once ALL questions are answered.**
 
 ---
@@ -172,6 +179,7 @@ COMPLEXITY: Medium / High
 - RBAC + permissions → `references/rbac-permissions.md`
 - OAuth / social auth → `references/oauth-social.md`
 - Token revocation → `references/token-revocation.md`
+- Two-factor authentication (TOTP) → `references/2fa-totp.md` (only if 2FA enabled)
 - Auth tests → `references/auth-testing.md`
 - New auth app scaffold → `assets/templates/user-type-scaffold.py`
 
@@ -226,6 +234,19 @@ COMPLEXITY: Medium / High
 - [ ] Cross-type token rejection tests pass
 - [ ] `deleted_by` equivalent: `deactivated_by` field on user models
 - [ ] `CLAUDE.md` updated with user types, JWT claim structure, auth URLs
+
+**If 2FA is enabled:**
+- [ ] `django-otp` installed with TOTP + static (recovery codes) plugins
+- [ ] `INSTALLED_APPS` includes `django_otp`, `django_otp.plugins.otp_totp`, `django_otp.plugins.otp_static`
+- [ ] `OTPMiddleware` registered AFTER `AuthenticationMiddleware`
+- [ ] `OTP_TOTP_ISSUER` set in settings (shown in authenticator app)
+- [ ] StaffUser model has `has_2fa_enabled` + `require_2fa` fields
+- [ ] Enrollment endpoints: `/2fa/setup/` (QR code) + `/2fa/confirm/` (verify + issue recovery codes)
+- [ ] Login flow returns `requires_2fa: true` with short-lived `pre_2fa_token` signed via `TimestampSigner`
+- [ ] Verification endpoint accepts TOTP or recovery code (one-time use)
+- [ ] Admin panel protected via `OTPAdminSite` (if 2FA mandatory for admins)
+- [ ] Recovery codes generated once at enrollment, displayed to user, shown as one-time consumable
+- [ ] Test: enrollment + login-with-2FA + recovery-code-one-time + disable-2FA flows
 
 ---
 

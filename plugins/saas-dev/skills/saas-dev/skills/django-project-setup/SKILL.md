@@ -67,6 +67,13 @@ ask_user_input_v0:
    → [Next.js App Router]
    → [Next.js Pages Router]
    → [None — API only]
+
+5. Will this app serve multiple customers on separate data?
+   → [Yes — shared-schema multi-tenant (tenant_id on every model)]
+   → [No — single-tenant SaaS (one customer's data only)]
+   If multi-tenant, the backend skill loads `references/multi-tenancy.md`
+   and all models inherit `TenantAwareBaseModel` instead of plain `BaseModel`.
+   This decision is locked in at setup — switching later requires a data migration.
 ```
 
 **Only proceed once all questions are answered.**
@@ -153,6 +160,16 @@ COMPLEXITY: Low
 - [ ] §4 dependency_registry populated from requirements.txt + package.json
 - [ ] §5 environment_variables populated from .env.example
 - [ ] §9 first entry: "Project bootstrapped"
+
+**If multi-tenant chosen:**
+- [ ] §7 ADR captures multi-tenancy choice with tenant resolution strategy (subdomain/slug/JWT claim)
+- [ ] Note in §9 recent_changes: "Multi-tenancy enabled — shared-schema"
+- [ ] Mark CLAUDE.md so backend skill knows to load `multi-tenancy.md` when creating models
+- [ ] Skip creating `Tenant` app here — that happens in backend phase with full pattern
+
+**If 2FA planned (user answered yes to auth 2FA question):**
+- [ ] §7 ADR captures 2FA enforcement policy (mandatory/optional/admins-only)
+- [ ] Mark CLAUDE.md so auth skill knows to load `2fa-totp.md` during auth phase
 
 ---
 

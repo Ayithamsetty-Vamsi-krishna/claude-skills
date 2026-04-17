@@ -202,6 +202,8 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - Sequential code generation (ORD-0001) → `references/code-generation.md`
 - Django signals (model events → tasks/cache/notifications) → `references/services.md` (signals section)
 - Redis caching → route to `django-integrations-dev` → `references/caching.md`
+- Audit log (who did what, when, from where) → `references/audit-log.md`
+- Multi-tenancy (shared-schema with tenant_id) → `references/multi-tenancy.md` (only if multi-tenant chosen at setup)
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 
@@ -255,6 +257,25 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - [ ] dodelete test: child soft-deleted, not hard-deleted
 - [ ] `created_by`/`updated_by` verified in create/update tests
 - [ ] CLAUDE.md created or updated with new app/feature info
+
+**If audit logging is enabled (enterprise):**
+- [ ] `AuditLog` model registered with GenericForeignKey and DB-level DELETE trigger
+- [ ] `AuditContextMiddleware` in MIDDLEWARE (after AuthenticationMiddleware)
+- [ ] Tracked models use `@track_audit` decorator — auto-log on save/delete
+- [ ] Manual log points added: login, logout, sensitive access, data export
+- [ ] Audit log API endpoint created (read-only, staff-only permission)
+- [ ] Test: audit entry created on model save, update captures diff, delete blocked
+
+**If multi-tenancy is enabled:**
+- [ ] `Tenant` model created with subdomain/slug strategy chosen
+- [ ] Business models inherit `TenantAwareBaseModel` (NOT plain BaseModel)
+- [ ] `TenantMiddleware` registered AFTER auth, BEFORE audit middleware
+- [ ] JWT claims include `tenant_id` (set in token serializer)
+- [ ] Composite indexes: `(tenant, ...)` on every business model
+- [ ] Unique constraints scoped to tenant (e.g. `unique_together=['tenant', 'code']`)
+- [ ] Admin uses `.all_tenants()` to bypass default filtering
+- [ ] Celery tasks wrapped in `TenantContext(tenant=...)` context manager
+- [ ] Test: queryset returns 0 rows when accessed from wrong tenant context
 
 ---
 
