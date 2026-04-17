@@ -167,6 +167,7 @@ COMPLEXITY: Medium / High
 ### Reference loading (load ONLY what current task needs)
 - AbstractBaseUser models → `references/custom-user-models.md`
 - JWT backends + serializers + views → `references/jwt-multi-type.md`
+- Password reset flow (non-primary user types) → `references/password-reset.md`
 - Middleware pattern → `references/auth-middleware.md`
 - RBAC + permissions → `references/rbac-permissions.md`
 - OAuth / social auth → `references/oauth-social.md`

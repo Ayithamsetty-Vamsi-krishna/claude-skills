@@ -60,6 +60,13 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
   const isProduction = process.env.NODE_ENV === 'production'
 
+  // Cookie security flags explained:
+  //   httpOnly: true      — JavaScript cannot read the cookie (XSS protection)
+  //   secure: isProduction — HTTPS-only in production; allows http://localhost in dev.
+  //                          DO NOT hardcode secure:true — dev server breaks.
+  //                          DO NOT hardcode secure:false — production leaks cookies.
+  //   sameSite: 'lax'     — sent on top-level navigations; blocks CSRF
+  //   path: '/'           — cookie sent to all paths
   cookieStore.set('access_token', data.data.access, {
     httpOnly: true,
     secure:   isProduction,

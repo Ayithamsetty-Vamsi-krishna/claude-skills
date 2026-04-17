@@ -101,6 +101,7 @@ P6: Core app creation
 P7: Initial migration + superuser
 P8: Apps creation (if specified)
 P9: Git init + .gitignore
+P10: Testing bootstrap (pytest.ini, smoke test, coverage config)
 
 COMPLEXITY: Low
 ═══════════════════════════════════════
@@ -117,6 +118,7 @@ COMPLEXITY: Low
 - requirements.txt template → `references/requirements-template.md`
 - startproject + settings → `references/startproject.md`
 - Next.js project creation (if Next.js selected) → `references/nextjs-startproject.md`
+- Testing bootstrap (pytest, smoke tests, coverage) → `references/testing-bootstrap.md`
 
 ### After each task:
 1. Show exact commands to run
@@ -141,4 +143,7 @@ COMPLEXITY: Low
 - [ ] `SECRET_KEY` in `.env` — not in settings file
 - [ ] `python manage.py migrate` runs without errors
 - [ ] `python manage.py runserver` starts without errors
+- [ ] `pytest.ini` at project root points to `config.settings.testing`
+- [ ] `pytest tests/test_setup.py` passes (smoke test confirms infra works)
+- [ ] `.coveragerc` configured with correct omit paths
 - [ ] `CLAUDE.md` generated with project context

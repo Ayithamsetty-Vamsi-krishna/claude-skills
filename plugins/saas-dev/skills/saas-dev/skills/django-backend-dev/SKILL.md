@@ -192,7 +192,9 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - Models / BaseModel / mixins → `references/models.md`
 - Serializers / views / filters / URLs / permissions → `references/serializers-views.md`
 - Admin registration → `references/admin.md`
-- Testing / fixtures / pytest config → `references/testing.md`
+- Testing setup (pytest.ini, factories, conftest) → `references/testing-setup.md`
+- Serializer + API view tests → `references/testing.md`
+- Advanced tests (services, signals, concurrency) → `references/testing-advanced.md`
 - ORM / settings → `references/orm-settings.md`
 - Error handling / env vars / CORS → `references/error-settings.md`
 - API versioning / breaking changes → `references/api-versioning.md`

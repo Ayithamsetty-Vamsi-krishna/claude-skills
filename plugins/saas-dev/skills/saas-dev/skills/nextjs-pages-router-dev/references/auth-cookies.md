@@ -30,6 +30,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const isProd = process.env.NODE_ENV === 'production'
+
+  // Cookie security flags explained:
+  //   httpOnly: true — JavaScript cannot read the cookie (XSS protection)
+  //   secure: isProd — HTTPS-only in production; allows http://localhost in dev.
+  //                    DO NOT hardcode secure:true or the dev server breaks;
+  //                    DO NOT hardcode secure:false or production leaks cookies.
+  //   sameSite: 'lax' — sent on top-level navigations; blocks CSRF
+  //   maxAge in seconds
   setCookie('access_token',  data.data.access,  { req, res, httpOnly: true, secure: isProd, sameSite: 'lax', maxAge: 3600 })
   setCookie('refresh_token', data.data.refresh, { req, res, httpOnly: true, secure: isProd, sameSite: 'lax', maxAge: 604800 })
   setCookie('user_type',     user_type,          { req, res, httpOnly: true, secure: isProd, sameSite: 'lax', maxAge: 604800 })

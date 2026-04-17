@@ -154,8 +154,7 @@ COMPLEXITY: Medium / High
 - Zustand state management → `references/state-zustand.md`
 - Forms (Server Actions vs RHF) → `references/forms-server-actions.md`
 - SEO + metadata → `references/metadata-seo.md`
-- Deploy to Vercel → `references/deployment-vercel.md`
-- Deploy with Docker → `references/deployment-docker.md`
+- Deployment (Vercel + Docker) → `references/deployment.md`
 - Testing → `references/testing.md`
 
 ### After each task:

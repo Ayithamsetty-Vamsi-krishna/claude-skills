@@ -258,3 +258,133 @@ def scan_with_virustotal(file_data: bytes, filename: str) -> dict:
 **Recommendation:** For most SaaS, MIME type checking + file size limits is sufficient.
 Add ClamAV only if regulatory compliance (HIPAA, SOC2) requires it.
 Document your security policy in CLAUDE.md so future sessions know the choice.
+
+---
+
+## SSRF protection — critical for "import from URL" features
+
+**SSRF (Server-Side Request Forgery)** happens when your backend fetches a URL
+the user provides. An attacker can point the URL at internal services
+(`http://169.254.169.254/` for AWS metadata, `http://localhost:5432/` for Postgres,
+`http://10.0.0.1/admin/`) and trick your server into making the request on their behalf.
+
+**Any feature where the user provides a URL is an SSRF vector:**
+- "Import image from URL" (profile pictures, product images)
+- "Fetch metadata from link" (link previews)
+- "Webhook to this URL" (customer callbacks — see webhooks reference)
+- "Profile picture URL" fields
+- OAuth redirect_uri validation
+
+### The fix: validate URLs against internal IP ranges BEFORE fetching
+
+```python
+# core/ssrf_protection.py
+import ipaddress
+import socket
+from urllib.parse import urlparse
+from django.core.exceptions import ValidationError
+
+# Private / reserved ranges that internal services live on
+PRIVATE_RANGES = [
+    ipaddress.ip_network('10.0.0.0/8'),          # RFC 1918 private
+    ipaddress.ip_network('172.16.0.0/12'),       # RFC 1918 private
+    ipaddress.ip_network('192.168.0.0/16'),      # RFC 1918 private
+    ipaddress.ip_network('127.0.0.0/8'),         # localhost
+    ipaddress.ip_network('169.254.0.0/16'),      # link-local (AWS metadata!)
+    ipaddress.ip_network('::1/128'),             # IPv6 localhost
+    ipaddress.ip_network('fc00::/7'),            # IPv6 private
+    ipaddress.ip_network('fe80::/10'),           # IPv6 link-local
+    ipaddress.ip_network('0.0.0.0/8'),           # "this" network
+]
+
+ALLOWED_SCHEMES = {'http', 'https'}
+
+
+def validate_external_url(url: str) -> str:
+    """
+    Validates a user-supplied URL is safe to fetch from the server.
+    Raises ValidationError if it targets internal infrastructure.
+
+    IMPORTANT: Resolve DNS and re-check — a domain like 'evil.com' can
+    have an A record of 169.254.169.254. Check the RESOLVED IP, not the hostname.
+    """
+    parsed = urlparse(url)
+
+    # 1. Scheme check
+    if parsed.scheme not in ALLOWED_SCHEMES:
+        raise ValidationError(f'Only http/https URLs allowed — got {parsed.scheme}')
+
+    # 2. Must have a hostname
+    if not parsed.hostname:
+        raise ValidationError('URL missing hostname')
+
+    # 3. Block obvious localhost strings (before DNS)
+    if parsed.hostname.lower() in ('localhost', '0.0.0.0', '[::]'):
+        raise ValidationError('URL targets localhost')
+
+    # 4. DNS resolve — get actual IP the request will go to
+    try:
+        resolved_ips = [info[4][0] for info in socket.getaddrinfo(parsed.hostname, None)]
+    except socket.gaierror:
+        raise ValidationError('Hostname cannot be resolved')
+
+    # 5. Block any IP in private/internal ranges
+    for ip_str in resolved_ips:
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ValueError:
+            continue
+        for blocked in PRIVATE_RANGES:
+            if ip in blocked:
+                raise ValidationError(
+                    f'URL resolves to internal/private address ({ip_str})'
+                )
+
+    return url
+
+
+# Usage in a serializer
+from rest_framework import serializers
+
+class ImportImageSerializer(serializers.Serializer):
+    image_url = serializers.URLField()
+
+    def validate_image_url(self, value):
+        return validate_external_url(value)  # raises ValidationError if unsafe
+```
+
+### Additional SSRF hardening
+
+```python
+# When you DO fetch the URL, use additional safeguards:
+import requests
+
+response = requests.get(
+    url,
+    timeout=(3, 10),           # connect timeout, read timeout
+    allow_redirects=False,     # ← CRITICAL: a safe URL can 302-redirect to internal
+    stream=True,               # don't buffer the entire response in memory
+    headers={'User-Agent': 'YourApp/1.0'},
+)
+
+# If you DO follow redirects, re-validate every hop — the redirect target
+# is a NEW user-supplied URL and must pass validate_external_url() again.
+```
+
+### What to do about AWS metadata service specifically
+
+AWS instances expose `http://169.254.169.254/` with IAM credentials. Any SSRF
+to this endpoint can extract your AWS keys.
+
+- Use IMDSv2 on your EC2 instances (requires a session token — breaks simple SSRF)
+- Block `169.254.0.0/16` (covered in `PRIVATE_RANGES` above)
+- Run workloads in VPCs without a direct route to the metadata service when possible
+
+### Other "import from URL" features to audit
+
+- **Webhooks sent by customers to your webhook endpoint** — incoming, not outgoing; not SSRF
+- **Webhooks your server sends to customer URLs** — SSRF risk; validate the customer's URL
+- **HTML email with remote images** — if you render email previews server-side, same risk
+- **PDF generation from URL** — WeasyPrint/wkhtmltopdf fetching external resources
+- **OAuth redirect_uri** — validate against pre-registered allowlist; never accept arbitrary
+- **OpenGraph / link unfurling** — classic SSRF vector; validate before fetching
