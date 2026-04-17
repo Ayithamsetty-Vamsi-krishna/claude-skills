@@ -7,7 +7,38 @@ CLAUDE.md is the contract between skills.
 
 ---
 
-## After every specialist skill completes a task, update CLAUDE.md with:
+## CLAUDE.md v2 format (as of saas-dev 4.0.0)
+
+**Authoritative references:**
+- Format spec: `references/router/claude-md-v2.md` — the 9 sections, field rules
+- Update protocol: `references/router/claude-md-update-protocol.md` — when/how each skill writes
+- Starter template: `assets/templates/CLAUDE.md.template` — used by django-project-setup
+
+**Quick summary for skills in a hurry:**
+
+1. **Read** CLAUDE.md at start of Phase 0 — don't proceed until you have it loaded
+2. **Never modify** schema_version (§1) — router-only
+3. **Always update** `last_updated` in project_metadata (§2) on any write
+4. **Always update** `version_last_used` in skill_version_used (§3) on any write
+5. **APPEND** to §4 dependency_registry — never remove
+6. **APPEND** to §5 environment_variables under the right subsection
+7. **ADD ROW** to §6 third_party_integrations table for each integration
+8. **APPEND** new ADR (§7) with next sequential number — never renumber
+9. **APPEND** known issue (§8) — mark fixed, don't delete
+10. **PREPEND** recent_changes (§9) — keep only last 10 rows
+
+## Historical context (pre-v2 format — preserved for reference)
+
+Projects that were started before saas-dev 4.0.0 may have a v1-format CLAUDE.md
+(free-form Markdown without numbered sections). These still work — skills should
+detect and migrate using the v1→v2 migration note at the bottom of claude-md-v2.md.
+
+The pre-v2 "Auth / Backend / Integrations / Frontend" free-form layout below is
+historical. New projects MUST use v2.
+
+---
+
+## (Legacy v1 free-form format — for historical reference only)
 
 ```markdown
 ## Auth

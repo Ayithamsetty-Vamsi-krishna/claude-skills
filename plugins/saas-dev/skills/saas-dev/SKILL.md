@@ -43,8 +43,13 @@ Check what MCP tools are connected and note for use in relevant tasks:
 
 ### Step 3: Check CLAUDE.md
 - **Exists** → read immediately, use as primary project context
-- **New project** → will generate after first task
-- **Existing project, no CLAUDE.md** → full analysis first, generate at end
+  - Check §1 schema_version — if `2`, use v2 format (see `references/router/claude-md-v2.md`)
+  - If older or missing section numbers, treat as v1 — migrate on next write
+- **New project** → will generate v2-format from `assets/templates/CLAUDE.md.template`
+- **Existing project, no CLAUDE.md** → full analysis first, generate v2 at end
+
+**CLAUDE.md v2 is canonical as of saas-dev 4.0.0.** Full format spec:
+`references/router/claude-md-v2.md`. Update rules: `references/router/claude-md-update-protocol.md`.
 
 ### Step 4: Classify the requirement
 Analyse the requirement and identify ALL types of work needed:
@@ -139,10 +144,20 @@ Ready to start Phase [N+1] ([skill name])? [Yes / Review output first]"
 ## PHASE 1 — SESSION CONTEXT MANAGEMENT
 
 ### After each specialist skill completes a task:
-1. Update `CLAUDE.md` with what was built (new models, user types, endpoints, components)
-2. Note any contracts the next skill needs (API endpoints, user type names, JWT claim structure)
-3. Route to the next skill in the sequence
-4. Pass the updated CLAUDE.md context to the next skill
+1. Update `CLAUDE.md` using v2 protocol — see `references/router/claude-md-update-protocol.md`
+   for exact rules on which section each skill writes to
+2. **Always** update §2 `last_updated`, §3 `version_last_used`, and §9 recent_changes
+3. Add new §4 deps, §5 env vars, §6 integrations, §7 ADRs as relevant to the work done
+4. Emit the "update checkpoint" block so the user can verify:
+   ```
+   ✓ CLAUDE.md updated:
+     §4: +N dependencies
+     §5: +N env vars
+     §7: +ADR-NNN (title)
+     §9: +1 change entry
+   ```
+5. Route to the next skill in the sequence
+6. Pass the updated CLAUDE.md context to the next skill
 
 ### Context handoff format:
 When moving between skills, prefix the next skill invocation with:

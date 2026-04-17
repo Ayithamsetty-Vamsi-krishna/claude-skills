@@ -138,3 +138,33 @@ T1: Tests
 **Tests:**
 - [ ] All Phase 1 test cases implemented
 - [ ] CLAUDE.md updated with pages, API routes, Redux slices
+
+---
+
+## CLAUDE.md v2 Update Rules (saas-dev 4.0.0+)
+
+At the end of Phase 3, update CLAUDE.md following the v2 protocol. Full rules:
+`saas-dev/references/router/claude-md-update-protocol.md`. Quick reference for this skill:
+
+**Always update:**
+- §2 `last_updated` — today's date
+- §3 `version_last_used` — current saas-dev version
+- §9 Recent Changes — prepend one entry: `| YYYY-MM-DD | [SKILL_NAME] | [VERSION] | [change] |`
+
+**Update as relevant to work done:**
+- §4 Dependency Registry — new packages added (version + one-line purpose)
+- §5 Environment Variables — new env vars (under correct subsection)
+- §6 Third-Party Integrations — new row if integration added
+- §7 Architecture Decisions — new ADR for non-obvious design choices
+- §8 Known Issues — append if discovered during work
+
+**Emit update checkpoint to chat:**
+```
+✓ CLAUDE.md updated:
+  §4: +N dependencies
+  §5: +N env vars
+  §7: +ADR-NNN (title)
+  §9: +1 change entry
+```
+
+Full format spec: `saas-dev/references/router/claude-md-v2.md`
