@@ -208,6 +208,7 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - Full-text search — PostgreSQL → `references/search-postgres.md` (default for <1M records)
 - Full-text search — Elasticsearch → `references/search-elasticsearch.md` (for scale or fuzzy/faceted search)
 - Field-level encryption (MultiFernet rotating keys) → `references/field-encryption.md` (for PII, secrets, tokens)
+- GDPR compliance (cookie consent + data export) → `references/gdpr-compliance.md` (if EU/EEA users)
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 

@@ -1,7 +1,7 @@
 {
   "name": "saas-dev",
   "description": "Full-stack SaaS development suite. Single entry point auto-router \u2014 handles Django project setup (venv, OS-specific), multi-user auth, CRUD backend, integrations, React/Vite SPA, Next.js App Router, Next.js Pages Router, and DevOps. BFF pattern enforced for all Next.js architectures.",
-  "version": "3.4.0",
+  "version": "4.0.0",
   "author": {
     "name": "Ayithamsetty Vamsi Krishna"
   },

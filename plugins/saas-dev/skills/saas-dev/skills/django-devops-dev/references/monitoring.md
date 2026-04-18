@@ -145,3 +145,56 @@ def health_check(request):
 # config/urls.py
 path('health/', health_check, name='health-check'),
 ```
+
+---
+
+## Read replica (brief mention)
+
+When read traffic grows beyond what a single Postgres instance can handle
+(typically > 10× write traffic), add a read replica and route reports/analytics
+queries to it:
+
+```python
+# config/settings/production.py
+DATABASES = {
+    'default': {..., 'HOST': 'primary.db.example.com'},
+    'replica': {..., 'HOST': 'replica.db.example.com'},
+}
+DATABASE_ROUTERS = ['core.db_routers.ReplicaRouter']
+```
+
+```python
+# core/db_routers.py
+class ReplicaRouter:
+    """Route read-heavy apps (reports, analytics) to replica."""
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in ('reports', 'analytics'):
+            return 'replica'
+        return 'default'
+
+    def db_for_write(self, model, **hints):
+        return 'default'
+
+    def allow_relation(self, obj1, obj2, **hints):
+        return True
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return db == 'default'   # migrations only on primary
+```
+
+**When NOT to add a replica:**
+- < 5 req/sec — no bottleneck
+- Writes > 30% of queries — replica adds little
+- Strong read-your-writes required in some flows — replication lag causes bugs
+
+**Monitor replica lag:**
+```sql
+-- On replica:
+SELECT NOW() - pg_last_xact_replay_timestamp() AS lag_seconds;
+```
+
+Expose as Prometheus gauge (target < 5s; alert if > 30s).
+
+For the connection pooling interaction with replicas, see `db-pooling.md`.
+Full replica pattern is out of scope for Tier 3 — revisit when read traffic
+actually needs it.
