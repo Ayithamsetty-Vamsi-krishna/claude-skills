@@ -83,6 +83,23 @@ Server push only (notifications, live feeds) → SSE (StreamingHttpResponse)
 Non-critical updates (reports, dashboards) → Polling (interval + RTK Query)
 ```
 
+**For PDF generation (ask per document type):**
+```
+Which PDF library?
+→ [WeasyPrint — HTML/CSS templates, easier to iterate]
+→ [ReportLab — programmatic layout, precise control]
+→ [Both — HTML for invoices, ReportLab for labels/precision docs]
+```
+Loads `references/pdf-weasyprint.md` or `references/pdf-reportlab.md` as applicable.
+
+**For outbound webhooks (if customers integrate with your SaaS):**
+```
+Webhook delivery needs:
+→ [Yes — JWT-signed + retry + delivery log (recommended)]
+→ [No — skip for now]
+```
+Loads `references/outbound-webhooks.md` when enabled.
+
 **Only proceed once research is complete and questions answered.**
 
 ---
@@ -153,6 +170,9 @@ COMPLEXITY: Low / Medium / High
 - Background tasks — Django-Q → `references/tasks-djangoq.md`
 - Redis caching → `references/caching.md`
 - MCP tool usage → `references/mcp-usage.md`
+- PDF generation — WeasyPrint (HTML/CSS) → `references/pdf-weasyprint.md`
+- PDF generation — ReportLab (programmatic) → `references/pdf-reportlab.md`
+- Outbound webhooks (JWT-signed, retries) → `references/outbound-webhooks.md`
 
 ### After each task:
 1. Show completed code
@@ -199,6 +219,39 @@ COMPLEXITY: Low / Medium / High
 - [ ] Provider error mock test
 - [ ] No real API calls in tests (all mocked)
 - [ ] CLAUDE.md updated with new integration details
+
+**If PDF generation (WeasyPrint):**
+- [ ] `weasyprint` in requirements.txt + system deps (Pango, Cairo) in Dockerfile
+- [ ] `templates/pdf/base.html` with `@page` margins + running header/footer
+- [ ] `@font-face` with self-hosted fonts in `static/pdf/fonts/` (not CDN)
+- [ ] `base_url` passed to `HTML()` — images/fonts resolve correctly
+- [ ] Long docs offloaded to Celery task (not sync response)
+- [ ] `PDFThrottle` on PDF endpoints (30/minute per user default)
+- [ ] Every PDF export audit-logged as `AuditAction.EXPORT`
+- [ ] Tenant filter applied before document lookup
+- [ ] Test: pypdf extracts expected text from rendered PDF
+
+**If PDF generation (ReportLab):**
+- [ ] `reportlab` in requirements.txt (no system deps)
+- [ ] Platypus for multi-page docs, Canvas for single-page precision
+- [ ] Custom fonts registered via `pdfmetrics.registerFont(TTFont(...))`
+- [ ] `repeatRows=1` on tables that span pages
+- [ ] Page-number canvas hook wired via `onFirstPage` + `onLaterPages`
+- [ ] Large reports use iterators + `KeepTogether` chunks (no OOM)
+- [ ] Same audit + tenant-filter + throttle rules as WeasyPrint
+
+**If outbound webhooks:**
+- [ ] `WebhookEndpoint` model with JWT-signed delivery + MultiFernet-encrypted secret
+- [ ] `WebhookDelivery` model immutable (readonly admin, never `.delete()` after state reached)
+- [ ] `FAILURE_THRESHOLD` auto-deactivates endpoints after N consecutive failures
+- [ ] Exponential backoff on retries (1, 2, 4, 8, 16 min — cap at 5 attempts)
+- [ ] 4xx does NOT retry (permanent), 5xx + network errors DO retry
+- [ ] `allow_redirects=False` on requests.post (SSRF safety)
+- [ ] Customer-facing delivery log endpoint for debugging
+- [ ] "Resend" endpoint for manually retrying failed deliveries
+- [ ] Secret shown to customer ONCE at creation (then hash-only storage)
+- [ ] Customer verification documented with JWT-decode example
+- [ ] Test: 5xx retries with scheduled `next_attempt_at`, 4xx fails immediately
 
 ---
 

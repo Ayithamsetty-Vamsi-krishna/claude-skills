@@ -207,6 +207,7 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - Feature flags (custom implementation) → `references/feature-flags.md`
 - Full-text search — PostgreSQL → `references/search-postgres.md` (default for <1M records)
 - Full-text search — Elasticsearch → `references/search-elasticsearch.md` (for scale or fuzzy/faceted search)
+- Field-level encryption (MultiFernet rotating keys) → `references/field-encryption.md` (for PII, secrets, tokens)
 - New app scaffold → `assets/templates/django-app-scaffold.py`
 - New project (no CLAUDE.md yet) → generate from `assets/templates/CLAUDE.md.template`
 
@@ -309,6 +310,18 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - [ ] Health check endpoint added to monitoring
 - [ ] `search_index --populate` command verified in CI/deploy pipeline
 - [ ] Test: cross-tenant isolation — manual assertion since no ORM auto-filter
+
+**If field-level encryption is enabled:**
+- [ ] `cryptography` library in requirements.txt
+- [ ] `FERNET_KEYS` set in .env (comma-separated; position 0 is current)
+- [ ] `EncryptedCharField` / `EncryptedTextField` used for all PII/secret fields
+- [ ] Sensitive fields with lookup need: separate `<field>_hash` SHA-256 column
+- [ ] Admin `list_display` does NOT include encrypted fields (N decryptions/page)
+- [ ] `search_fields` in admin excludes encrypted fields
+- [ ] `rotate_encryption` management command available for key rotation
+- [ ] Test: DB raw query on encrypted field shows ciphertext, not plaintext
+- [ ] Test: hash-based lookup finds the row via normalized+hashed value
+- [ ] ADR in CLAUDE.md §7 documenting: what's encrypted, why, key rotation policy
 
 ---
 
