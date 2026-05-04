@@ -298,12 +298,34 @@ FOR each feature in confirmed_feature_list (in dependency order):
     - Two-stage review after each task
     - Write progress to saas-dev-progress.md
 
-  STEP 4F — Finalize:
-    - Update saas-dev-progress.md: mark task list complete
-    - Update CLAUDE.md §9 (recent_changes)
-    - Update BUILD_PLAN.md completion tracking row: "✅ Done [commit] [date]"
-    - Commit: "feat: [feature name] — saas-dev v4.2.0"
-    - Show: "✅ Feature [N] complete. [X] models, [Y] endpoints, [Z] tests"
+  STEP 4F — User Approval Gate (ask_user_input_v0) ← REQUIRED BEFORE MARKING COMPLETE
+    Show summary then ask via ask_user_input_v0:
+      "✅ Feature [N] [Name] — [X] tasks done, all tests passing.
+       Built: [models/endpoints/pages summary]. Tests: [N] passing.
+       Approve and move to Feature [N+1]: [Name]?"
+    Options:
+      - "✅ Approve — mark complete, start next feature"
+      - "🔍 Let me review the code first (I'll say 'continue' when ready)"
+      - "🔁 Something is wrong — re-run this feature"
+      - "⏸ Stop here, I'll resume later"
+
+    IF Approve:
+      - Update CLAUDE.md §9 (recent_changes)
+      - Update BUILD_PLAN.md: "✅ Done [commit] [date]"
+      - Commit: "feat: [feature name] — saas-dev v4.2.0"
+      - Move to next feature
+
+    IF Review code first:
+      - STOP. Do not commit. Wait for "continue" or "approved"
+      - Then update BUILD_PLAN.md + commit + proceed
+
+    IF Something is wrong:
+      - Ask what the issue is via ask_user_input_v0, fix it, re-run approval gate
+
+    IF Stop here:
+      - Update BUILD_PLAN.md: "⏸ Paused — awaiting user [date]"
+      - Tell user: "Saved. Say 'continue build' to resume."
+      - STOP execution loop
 
   IF feature index % 3 == 0 OR user said "checkpoint":
     RUN CHECKPOINT (see below)

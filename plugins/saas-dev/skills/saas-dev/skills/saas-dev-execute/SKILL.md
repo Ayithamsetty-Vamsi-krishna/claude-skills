@@ -58,6 +58,16 @@ FOR each task in saas-dev-plan.md (in dependency order):
         Continue with Phase [X+1]? (yes / stop / adjust)"
 ```
 
+## Frontend Tasks: Load saas-dev-ui First
+
+Before spawning any subagent for a **frontend task** (React, Next.js, Flutter, landing page, component, page):
+
+1. Load `saas-dev-ui` skill
+2. Generate the design system for this feature (Step 2 of saas-dev-ui)
+3. Include the design system output in the subagent context
+
+This ensures every frontend component gets premium UI — glassmorphism, aurora, neumorphism, proper animations, loading states, accessibility.
+
 ## Subagent Context Template
 
 Each subagent receives exactly this:
@@ -71,7 +81,10 @@ TASK (from saas-dev-plan.md):
 SPECIALIST SKILL TO LOAD:
 [paste the specialist skill listed in the task]
 
-DESIGN REFERENCE (if frontend task):
+DESIGN SYSTEM (if frontend task — from saas-dev-ui):
+[paste the generated design system: style, colors, typography, spacing, animation tokens]
+
+DESIGN REFERENCE FILE (if frontend task and designs/ file exists):
 [paste contents of design file listed in task, e.g., designs/invoicing/invoice-list.html]
 
 CURRENT FILE STATE:
