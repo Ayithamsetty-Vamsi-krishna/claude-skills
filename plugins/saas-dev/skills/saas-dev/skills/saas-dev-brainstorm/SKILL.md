@@ -33,7 +33,11 @@ Produce a `saas-dev-spec.md` that captures:
 2. **Read existing models** — scan `*/models.py` for patterns, relationships, audit fields
 3. **Read existing views** — check `*/views.py` for DRF patterns in use
 4. **Check tests** — scan `*/tests/` to understand existing test structure
-5. **Read PRDs if available** — extract feature requirements from business-prd.md + technical-prd.md
+5. **Read PRDs if available** — supported formats: .pdf, .docx, .doc, .md, .txt
+   - .pdf → `python3 -c "from pypdf import PdfReader; r=PdfReader('file.pdf'); print('\n'.join(p.extract_text() for p in r.pages))"`
+   - .docx → `extract-text file.docx`
+   - .md / .txt → `cat file`
+   - If orchestrator already read PRDs → use the extracted text already in context, do not re-read
 6. **Read design files if available** ← NEW
    - Check if `designs/[feature]/` folder exists
    - Read all `.html` files (exported from Claude Design)
