@@ -47,7 +47,8 @@ Produce a `saas-dev-spec.md` that captures:
    - Touches auth/2FA → `django-auth-dev`
    - Touches models/serializers/views → `django-backend-dev`
    - Touches payments/webhooks/email/PDF/files → `django-integrations-dev`
-   - Touches React/Redux/forms → `react-frontend-dev`
+   - Touches React/Next.js/Redux/forms → `saas-dev-ui-react` + `react-frontend-dev`
+   - Touches Flutter/mobile → `saas-dev-ui-flutter`
    - Touches deployment/logging/metrics/K8s → `django-devops-dev`
    - New project → `django-project-setup`
 
@@ -153,6 +154,8 @@ Categories: happy path, validation, auth, soft-delete, multi-tenant isolation, C
 ## Specialist Skills to Load
 - django-backend-dev (models, serializers, views, permissions)
 - django-integrations-dev (Celery, PDF, email)
+- saas-dev-ui-react (design system + premium React UI patterns)
+- saas-dev-ui-flutter (design system + premium Flutter UI patterns) — if mobile/Flutter in scope
 - react-frontend-dev (Redux, forms, loading states)
 
 ## Architecture Decisions

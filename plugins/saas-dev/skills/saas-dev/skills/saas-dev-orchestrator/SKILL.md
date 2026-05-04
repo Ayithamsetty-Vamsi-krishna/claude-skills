@@ -164,7 +164,7 @@ PRD formats read: [list format found e.g. business-prd.pdf, technical-prd.docx]
 **Purpose:** [from business PRD]
 **Depends on:** Feature 0
 **Estimated time:** ~4 hours
-**Specialist skills:** django-auth-dev + react-frontend-dev
+**Specialist skills:** django-auth-dev + react-frontend-dev + saas-dev-ui-react
 **Designs:** designs/auth/ (login.html, signup.html, 2fa-setup.html)
 **Sub-tasks:**
 - [ ] StaffUser model (AbstractBaseUser, primary=True)
@@ -185,7 +185,7 @@ PRD formats read: [list format found e.g. business-prd.pdf, technical-prd.docx]
 **Purpose:** [from business PRD]
 **Depends on:** Feature 0, 1
 **Estimated time:** ~X hours
-**Specialist skills:** django-backend-dev + react-frontend-dev [+ others]
+**Specialist skills:** django-backend-dev + react-frontend-dev + saas-dev-ui-react [+ saas-dev-ui-flutter if mobile]
 **Designs:** designs/[feature]/ [or "No designs found for this feature"]
 **Sub-tasks:**
 - [ ] [task 1]

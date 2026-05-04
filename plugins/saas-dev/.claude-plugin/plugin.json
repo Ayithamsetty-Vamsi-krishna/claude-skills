@@ -1,7 +1,7 @@
 {
   "name": "saas-dev",
-  "description": "Full-stack SaaS development suite. Single entry point auto-router \u2014 handles Django project setup (venv, OS-specific), multi-user auth, CRUD backend, integrations, React/Vite SPA, Next.js App Router, Next.js Pages Router, and DevOps. BFF pattern enforced for all Next.js architectures.",
-  "version": "4.1.0",
+  "description": "Full-stack SaaS scaffolding suite. PRD \u2192 complete app automation. Django + React + Flutter. Autonomous brainstorm \u2192 plan \u2192 execute pipeline. Enterprise patterns: multi-tenancy, audit logs, 2FA, feature flags, full-text search, webhooks, field encryption, K8s, GDPR. Premium UI: glassmorphism, aurora, neumorphism, Flutter animations.",
+  "version": "4.3.1",
   "author": {
     "name": "Ayithamsetty Vamsi Krishna"
   },
@@ -9,18 +9,37 @@
   "keywords": [
     "django",
     "react",
+    "flutter",
     "nextjs",
     "saas",
+    "enterprise",
     "typescript",
     "jwt",
     "auth",
     "celery",
     "redis",
     "docker",
-    "venv",
-    "nextauth",
-    "zustand",
-    "app-router",
-    "pages-router"
+    "multi-tenancy",
+    "audit-log",
+    "2fa",
+    "feature-flags",
+    "full-text-search",
+    "elasticsearch",
+    "field-encryption",
+    "gdpr",
+    "prometheus",
+    "opentelemetry",
+    "kubernetes",
+    "blue-green",
+    "pgbouncer",
+    "glassmorphism",
+    "aurora",
+    "neumorphism",
+    "flutter-animate",
+    "prd-automation",
+    "claude-code",
+    "antigravity",
+    "agent-skills",
+    "skill-marketplace"
   ]
 }

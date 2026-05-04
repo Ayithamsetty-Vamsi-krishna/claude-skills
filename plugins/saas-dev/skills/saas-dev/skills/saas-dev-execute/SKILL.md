@@ -58,12 +58,12 @@ FOR each task in saas-dev-plan.md (in dependency order):
         Continue with Phase [X+1]? (yes / stop / adjust)"
 ```
 
-## Frontend Tasks: Load saas-dev-ui First
+## Frontend Tasks: Load saas-dev-ui-react OR saas-dev-ui-flutter First
 
 Before spawning any subagent for a **frontend task** (React, Next.js, Flutter, landing page, component, page):
 
 1. Load `saas-dev-ui-react` (if React/Next.js task) OR `saas-dev-ui-flutter` (if Flutter task)
-2. Generate the design system for this feature (Step 2 of saas-dev-ui)
+2. Generate the design system for this feature (Step 2 of the loaded UI skill)
 3. Include the design system output in the subagent context
 
 This ensures every frontend component gets premium UI — glassmorphism, aurora, neumorphism, proper animations, loading states, accessibility.
@@ -81,7 +81,7 @@ TASK (from saas-dev-plan.md):
 SPECIALIST SKILL TO LOAD:
 [paste the specialist skill listed in the task]
 
-DESIGN SYSTEM (if frontend task — from saas-dev-ui):
+DESIGN SYSTEM (if frontend task — from saas-dev-ui-react or saas-dev-ui-flutter):
 [paste the generated design system: style, colors, typography, spacing, animation tokens]
 
 DESIGN REFERENCE FILE (if frontend task and designs/ file exists):

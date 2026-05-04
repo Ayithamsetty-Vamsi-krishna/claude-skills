@@ -1,10 +1,10 @@
 # saas-dev
 
-> Enterprise SaaS scaffolding skills for Django + React/Next.js — 107 reference files, 5 specialist skills, Superpowers-style autonomous pipeline.
+> Enterprise SaaS scaffolding skills for Django + React + Flutter — 107 reference files, 15 skills, full PRD → complete app automation pipeline.
 
 ## What is saas-dev?
 
-saas-dev is a Claude Code skills marketplace plugin that packages production-grade Django + React SaaS patterns as agent skills. It covers the enterprise baseline (audit logs, 2FA, multi-tenancy, feature flags, full-text search, webhooks, encryption, structured logging, Prometheus metrics, distributed tracing, database pooling, Kubernetes deployment, GDPR compliance) plus a Superpowers-style brainstorm → plan → execute pipeline for autonomous feature development.
+saas-dev is a Claude Code skills marketplace plugin that packages production-grade Django + React + Flutter SaaS patterns as agent skills. It covers the enterprise baseline (audit logs, 2FA, multi-tenancy, feature flags, full-text search, webhooks, encryption, structured logging, Prometheus metrics, distributed tracing, database pooling, Kubernetes deployment, GDPR compliance) plus a full PRD → app automation pipeline with premium futuristic UI (glassmorphism, aurora, neumorphism).
 
 ## Install
 
@@ -14,31 +14,50 @@ saas-dev is a Claude Code skills marketplace plugin that packages production-gra
 ## Repository
 
 - URL: https://github.com/Ayithamsetty-Vamsi-krishna/claude-skills
-- Version: 4.0.0
+- Version: 4.3.1
 - License: MIT
 
-## Specialist Skills
+## PRD → Complete App Pipeline
 
-- **django-project-setup**: New project scaffolding with 8 Phase 0 architecture questions, CLAUDE.md v2 generation, initial settings
-- **django-backend-dev**: DRF Generics, BaseModel, AuditMixin, SoftDeleteMixin, dual FK serializers, FilteredListSerializer, audit log, multi-tenancy, feature flags, Postgres FTS, Elasticsearch, field encryption, GDPR
-- **django-auth-dev**: Pattern C multi-user auth (StaffUser + CustomerUser), 2FA via django-otp, JWT per user type, RBAC, token revocation
-- **django-integrations-dev**: Stripe, S3 uploads, email, webhooks (JWT-signed), PDF (WeasyPrint + ReportLab), Celery, Redis
-- **django-devops-dev**: Docker, GitHub Actions, structlog, Prometheus, OpenTelemetry, Sentry Performance, PgBouncer, blue/green deployment, Kubernetes rolling deployment
+Upload your Business PRD + Technical PRD (PDF, DOCX, or MD format). Say "build from PRD".
 
-## Autonomous Pipeline Skills
+1. saas-dev-orchestrator reads both PRDs silently
+2. Extracts all features, builds dependency graph
+3. Saves BUILD_PLAN.md (full feature breakdown + sub-tasks + schedule)
+4. Asks user: build all / pick specific / reorder
+5. Loops for each feature: brainstorm → plan → execute
+6. Auto-marks complete after tests pass, notifies user (reject/pause options)
+7. Updates BUILD_PLAN.md and CLAUDE.md after each feature
+8. Final v1.0.0 tag when all features done
 
-- **using-saas-dev**: Bootstrap skill — loads at session start, auto-wires brainstorm → plan → execute
-- **saas-dev-brainstorm**: Socratic design discussion before writing code, saves spec to saas-dev-spec.md
-- **saas-dev-plan**: Breaks approved spec into 2–5 min tasks with exact file paths and verification steps
-- **saas-dev-execute**: Dispatches fresh subagent per task, two-stage review gate, writes progress to saas-dev-progress.md
+## Pipeline Skills
+
+- **using-saas-dev**: Bootstrap — loads at session start, auto-wires all skills
+- **saas-dev-orchestrator**: PRD → complete app. Reads PDF/DOCX/MD PRDs. BUILD_PLAN.md. Feature dependency graph.
+- **saas-dev-brainstorm**: Socratic design using ask_user_input_v0. Reads PRDs + design files. Saves spec.
+- **saas-dev-plan**: Breaks spec into 2-5 min narrative tasks (zero code snippets). Saves plan.
+- **saas-dev-execute**: Fresh subagent per task + specialist skill + design file. Two-stage review.
+
+## Frontend UI Skills
+
+- **saas-dev-ui-react**: Premium React + Next.js UI. Glassmorphism, aurora, neumorphism, bento grid. Framer Motion. Landing pages (8 sections). Dashboards. Integrates ui-ux-pro-max.
+- **saas-dev-ui-flutter**: Premium Flutter UI. Glassmorphism with BackdropFilter. flutter_animate staggered lists. go_router smooth transitions. Riverpod state. AppTokens design system. iOS + Android + Web.
+
+## Specialist Backend Skills
+
+- **django-project-setup**: New project scaffolding with 8 Phase 0 questions. CLAUDE.md v2 generation.
+- **django-backend-dev**: DRF Generics, BaseModel, AuditMixin, SoftDeleteMixin, dual FK serializers, audit log, multi-tenancy, feature flags, Postgres FTS, Elasticsearch, field encryption, GDPR
+- **django-auth-dev**: Pattern C multi-user auth (StaffUser + CustomerUser), 2FA via django-otp, JWT, RBAC
+- **django-integrations-dev**: Stripe, S3, email, JWT-signed webhooks, PDF (WeasyPrint + ReportLab), Celery, Redis
+- **django-devops-dev**: structlog, Prometheus, OpenTelemetry, Sentry, PgBouncer, blue/green, Kubernetes
 
 ## CLAUDE.md v2
 
-saas-dev introduces a structured CLAUDE.md v2 format with 9 sections: schema_version, project_metadata, skill_version_used, dependency_registry, environment_variables, third_party_integrations, architecture_decisions (ADR-lite), known_issues, recent_changes.
+Structured project memory: schema_version, project_metadata, skill_version_used, dependency_registry, environment_variables, third_party_integrations, architecture_decisions (ADR-lite), known_issues, recent_changes. Updated after every feature.
 
 ## Compatible Tools
 
-Claude Code, Google Antigravity, Cursor, OpenAI Codex CLI, Gemini CLI, OpenCode, Amp, Kiro, Windsurf — uses the open Agent Skills standard (agentskill.sh).
+Claude Code, Google Antigravity, Cursor, OpenAI Codex CLI, Gemini CLI, OpenCode, Amp, Kiro, Windsurf
 
 ## Author
 
@@ -46,4 +65,4 @@ Ayithamsetty Vamsi Krishna — https://github.com/Ayithamsetty-Vamsi-krishna
 
 ## Topics / Keywords
 
-django, react, nextjs, typescript, saas, enterprise, multi-tenancy, audit-logging, 2fa, feature-flags, full-text-search, elasticsearch, postgres, field-encryption, gdpr, prometheus, opentelemetry, kubernetes, blue-green-deployment, pgbouncer, claude-code, antigravity, agent-skills, skill-marketplace
+django, react, flutter, nextjs, typescript, saas, enterprise, multi-tenancy, audit-logging, 2fa, feature-flags, full-text-search, elasticsearch, postgres, field-encryption, gdpr, prometheus, opentelemetry, kubernetes, blue-green-deployment, pgbouncer, glassmorphism, aurora-gradient, neumorphism, bento-grid, flutter-animate, riverpod, go-router, prd-automation, claude-code, antigravity, agent-skills, skill-marketplace
