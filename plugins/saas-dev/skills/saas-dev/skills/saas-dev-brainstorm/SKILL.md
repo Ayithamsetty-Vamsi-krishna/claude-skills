@@ -33,6 +33,13 @@ Produce a `saas-dev-spec.md` that captures:
 2. **Read existing models** — scan `*/models.py` for patterns, relationships, audit fields
 3. **Read existing views** — check `*/views.py` for DRF patterns in use
 4. **Check tests** — scan `*/tests/` to understand existing test structure
+4b. **Scan existing frontend components** ← NEW
+   - Check `src/components/shared/` — list all shared components already built
+   - Check `src/features/*/` — list all feature components already built
+   - Note: any component that already exists MUST be reused, not recreated
+4c. **Scan existing Flutter widgets** ← NEW (if Flutter in scope)
+   - Check `lib/core/widgets/` — list all reusable widgets already built
+   - Note: any core widget that already exists MUST be reused
 5. **Read PRDs if available** — supported formats: .pdf, .docx, .doc, .md, .txt
    - .pdf → `python3 -c "from pypdf import PdfReader; r=PdfReader('file.pdf'); print('\n'.join(p.extract_text() for p in r.pages))"`
    - .docx → `extract-text file.docx`

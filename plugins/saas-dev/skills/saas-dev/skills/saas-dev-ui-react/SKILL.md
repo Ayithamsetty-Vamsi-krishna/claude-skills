@@ -215,24 +215,45 @@ className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
 
 Before marking any frontend task DONE:
 
+**Reusability (check FIRST before writing a single line):**
+- [ ] Does `src/components/shared/` already have a component for this?
+  If yes — USE IT. Do not create a duplicate.
+- [ ] Does this component belong in `src/components/shared/`?
+  If yes — add it there, not in the feature folder.
+- [ ] Rule: buttons, inputs, tables, modals, badges, empty states, error banners
+  are ALWAYS in `src/components/shared/`. Never feature-specific.
+- [ ] No copy-paste between feature folders — extract to shared if used twice.
+
 **Visual:**
 - [ ] Matches design reference (if designs/ file provided)
-- [ ] Uses design system colors/fonts/spacing (no hardcoded values)
-- [ ] Loading state present
-- [ ] Empty state present
-- [ ] Error state present
-- [ ] Responsive: 320px / 768px / 1024px / 1440px
+- [ ] Uses Tailwind config tokens only — zero hardcoded hex or px values
+- [ ] Loading state: `<TableSkeleton />` for tables, `<LoadingSpinner />` for others
+- [ ] Empty state: icon + message + CTA from `<EmptyState />`
+- [ ] Error state: `<ErrorBanner />` from shared components
+- [ ] Responsive: 320px / 768px / 1024px / 1440px tested
 
 **Animation:**
-- [ ] All transitions use design system tokens
-- [ ] No layout shift during load (skeletons reserve space)
-- [ ] Hover states < 200ms
+- [ ] Framer Motion for all transitions — never CSS keyframes for enter/exit
+- [ ] No layout shift during load (skeletons must match data layout dimensions)
+- [ ] Hover states feel instant (< 150ms)
 
-**Code:**
-- [ ] No hardcoded colors — use design tokens or Tailwind config
-- [ ] Components < 200 lines (split if larger)
-- [ ] Tests: renders, loading, error, user interaction
-- [ ] No `any` TypeScript types
+**Code quality (human-written standard):**
+- [ ] No hardcoded colors or spacing — Tailwind config or CSS variables only
+- [ ] Components under 200 lines — split into sub-components if larger
+- [ ] No `any` TypeScript types — explicit interfaces for all props and API shapes
+- [ ] `React.memo` on every component, `useCallback` on every handler prop
+- [ ] `createSelector` in `selectors.ts` — never inline `useSelector(s => s.x.y.z)` in JSX
+- [ ] Every `useEffect` with async data has abort cleanup
+- [ ] Variable names are descriptive — no `data`, `res`, `tmp`, `x`, `item`
+- [ ] Functions do one thing — no 50-line render functions
+- [ ] Tests: renders + loading + error + empty + user interaction
+
+**Human-written code standard:**
+- [ ] No redundant comments explaining what the code obviously does
+- [ ] No `// TODO: implement this` stubs left in production code
+- [ ] No console.log statements
+- [ ] Consistent naming: handlers are `handle[Action]`, booleans are `is[State]`
+- [ ] No dead code — no commented-out blocks, no unused imports
 
 ---
 

@@ -379,29 +379,47 @@ class FeatureScreen extends ConsumerWidget {
 
 Before marking any Flutter task DONE:
 
+**Reusability (check FIRST before writing a single line):**
+- [ ] Does `lib/core/widgets/` already have a widget for this?
+  If yes — USE IT. Do not create a duplicate.
+- [ ] Does this widget belong in `lib/core/widgets/`?
+  Rule: GlassCard, ShimmerBox, ErrorState, EmptyState, AppButton, AppTextField
+  are ALWAYS in `lib/core/widgets/`. Never feature-specific.
+- [ ] No copy-paste between feature folders — extract to core/widgets if used twice.
+- [ ] Uses `AppTokens` for all colors, spacing, radius, shadow, duration, curve values.
+  Zero hardcoded `Color(0xFF...)`, `8.0`, `BorderRadius.circular(12)` directly in widgets.
+
 **Visual:**
-- [ ] Uses design tokens (no hardcoded Color(), no magic numbers)
-- [ ] Loading state: ShimmerBox skeleton
-- [ ] Empty state: icon + message + CTA action
-- [ ] Error state: message + retry button
 - [ ] Matches design reference (if designs/ file provided)
+- [ ] Loading state: `ShimmerBox` from core/widgets
+- [ ] Empty state: `EmptyState` from core/widgets (icon + message + CTA)
+- [ ] Error state: `ErrorState` from core/widgets (message + retry)
 
 **Animation:**
-- [ ] Page transitions use CustomTransitionPage (smooth fade+slide)
-- [ ] List items stagger with flutter_animate
-- [ ] Tap feedback on all interactive elements
-- [ ] No jarring instant state switches (use AnimatedSwitcher)
+- [ ] Page transitions: `CustomTransitionPage` (fade + slideY easeOutCubic)
+- [ ] List items stagger: `flutter_animate` with `(index * 80).ms` delay
+- [ ] Tap feedback: `AnimatedScale` scale 0.96 on press
+- [ ] State changes: `AnimatedSwitcher` — no jarring instant switches
+- [ ] All durations/curves from `AppTokens` constants
 
 **Architecture:**
-- [ ] Tokens used from tokens.dart
-- [ ] State via Riverpod (no setState in top-level screens)
-- [ ] Widgets < 150 lines (split into sub-widgets if larger)
-- [ ] No logic in build() — logic in providers
+- [ ] All state via Riverpod providers — no `setState` in screens
+- [ ] No business logic in `build()` — providers and use cases only
+- [ ] Screens are `ConsumerWidget` — `StatefulWidget` only for local UI state (animation controllers)
+- [ ] Widgets under 150 lines — split into sub-widgets if larger
+- [ ] Data classes use Freezed — no mutable model classes
+
+**Code quality (human-written standard):**
+- [ ] No hardcoded strings — use const or l10n keys
+- [ ] Variable names are descriptive — no `data`, `res`, `tmp`, `item`
+- [ ] No dead code — no commented-out blocks, no unused imports
+- [ ] No `print()` statements — use structured logging
+- [ ] No TODO stubs left in production code
 
 **Cross-platform:**
-- [ ] Tested on iOS form factor (375 × 812)
-- [ ] Tested on Android form factor (360 × 800)
-- [ ] If web: responsive at 768px and 1024px
+- [ ] iOS form factor: 375 × 812 (iPhone 14)
+- [ ] Android form factor: 360 × 800 (Pixel)
+- [ ] If web target: responsive at 768px and 1280px
 
 ---
 

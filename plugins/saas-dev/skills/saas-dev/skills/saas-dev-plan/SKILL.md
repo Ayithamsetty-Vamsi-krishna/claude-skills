@@ -53,11 +53,18 @@ implementation tasks for subagent execution.
 - Async tasks (if applicable)
 
 ### Phase 3: Frontend
-- Redux slice + selectors
+**Before listing any frontend task, run this check:**
+- Look at the shared component scan from brainstorm Phase 1
+- If a needed component already exists in `src/components/shared/` → the task is "USE" not "BUILD"
+- Only create a new shared component if it genuinely does not exist yet
+- New shared components go in `src/components/shared/`, not in the feature folder
+
+Tasks:
+- Redux slice + selectors.ts (createSelector, no inline selectors)
 - RTK Query endpoints
-- List page with table
-- Detail/form page
-- Shared components
+- List page (uses `<TableSkeleton>`, `<DataTable>`, `<EmptyState>` from shared)
+- Detail/form page (uses `<FormField>`, `<Button loading>` from shared)
+- New shared components (if and only if none exists for this need)
 
 ### Phase 4: Frontend Tests
 - Component rendering

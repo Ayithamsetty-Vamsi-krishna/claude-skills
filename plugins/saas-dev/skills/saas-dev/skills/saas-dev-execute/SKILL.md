@@ -35,11 +35,31 @@ FOR each task in saas-dev-plan.md (in dependency order):
      - Are saas-dev patterns from the specialist skill applied?
      - Do verification steps from the plan all pass?
 
-  4. STAGE 2 REVIEW — Code quality:
+  4. STAGE 2 REVIEW — Code quality + security + reusability:
+
+     Code quality:
      - No N+1 queries (select_related / prefetch_related present)
-     - Type annotations present
-     - No hardcoded values that should be in settings
-     - Tests cover happy + negative + auth + edge cases
+     - Type annotations on all functions/methods
+     - No hardcoded values that belong in settings/env
+     - Tests cover: happy path + negative + auth + edge + soft-delete
+
+     Security (every task, not just auth tasks):
+     - Backend views: explicit permission_classes on every view (IsAuthenticated minimum)
+     - No raw SQL — ORM only (prevents injection)
+     - No user-controlled data passed to shell/eval/exec
+     - Rate limiting: throttle_classes on any public-facing or mutation endpoint
+     - No secrets/tokens in code — settings or env only
+     - Frontend: no dangerouslySetInnerHTML with user content (XSS)
+     - Flutter: no storing tokens in plain SharedPreferences (use flutter_secure_storage)
+
+     Reusability / DRY:
+     - Backend: does this model/serializer/view duplicate an existing one?
+       If yes → extend or reuse, do not copy-paste
+     - React: does this component duplicate something in src/components/shared/?
+       If yes → use the shared component, do not create a new one
+     - Flutter: does this widget duplicate something in lib/core/widgets/?
+       If yes → use the core widget, do not create a new one
+     - Are there magic strings/numbers that should be constants or enums?
 
   5. IF both reviews pass:
      → Write "Task N: DONE [timestamp]" to saas-dev-progress.md
@@ -107,6 +127,55 @@ Do not read files not listed in the task.
 - **No context bleed.** You don't know about Tasks 1-3 or Tasks 7-12. You only know Task 5.
 - **Fresh context = no drift.** Each subagent starts with a clean slate, no accumulated noise from previous tasks.
 - **Verification is non-negotiable.** Every check must pass before you mark DONE.
+
+## Human-Written Code Standard
+
+Every subagent must produce code that reads as if written by a careful, experienced human engineer.
+
+**Naming:**
+- Precise and domain-relevant. `invoice_total` not `data`. `handle_send_invoice` not `process`.
+- Booleans: `is_deleted`, `has_permission` — not `flag`, `check`, `val`.
+- No single-letter variables outside short `for i in range(...)` loops.
+
+**Functions and methods:**
+- One responsibility per function. Split if doing two things.
+- Django views: no business logic — logic in serializer `validate()` or `services.py`.
+- React: no data fetching in components — data via RTK Query hooks only.
+- Flutter screens: no business logic in `build()` — logic in Riverpod providers.
+
+**Comments:**
+- Explain WHY, not WHAT. `# select_for_update prevents race on code generation` is good.
+- `# get the invoice` above an obvious ORM call is noise — delete it.
+- No commented-out code blocks committed to files.
+- No TODO stubs — unimplemented work is a new task, not a stub.
+
+**Structure:**
+- No functions over 40 lines — break them up.
+- No files over 300 lines (models.py exception: up to 500 for large apps).
+- No nested conditionals more than 3 levels deep — extract or use early returns.
+
+**No AI-generated fingerprints:**
+- No `# Here we`, `# Now we`, `# This function` intro comments.
+- No docstrings that restate the function name.
+- No over-engineered abstractions for simple operations.
+- No over-commented obvious code blocks.
+
+## Cross-Feature DRY Check
+
+After every 3 features, orchestrator scans for duplication:
+
+```
+CROSS-FEATURE DRY SCAN:
+1. Backend: scan serializers across apps — any duplicate serializer fields?
+   → extract to core/serializers.py
+2. Backend: scan views across apps — any identical queryset filters?
+   → extract to a shared manager method
+3. React: scan src/features/*/components/ — any component built twice?
+   → move to src/components/shared/, update all imports
+4. Flutter: scan lib/features/*/presentation/widgets/ — any widget built twice?
+   → move to lib/core/widgets/, update all imports
+5. Report duplicates found to user before continuing to next feature
+```
 
 ## Progress File Format
 

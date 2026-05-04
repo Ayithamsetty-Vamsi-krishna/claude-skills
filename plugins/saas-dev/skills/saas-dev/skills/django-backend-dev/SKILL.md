@@ -253,6 +253,9 @@ COMPLEXITY: Medium / High  (use Quick Change Plan for Low)
 - [ ] `core/serializers.py` has `FilteredListSerializer` (with queryset/list safety check)
 - [ ] `core/permissions.py` has `GetPermission` factory
 - [ ] Settings use `python-decouple` | `.env.example` committed | `.env` gitignored
+- [ ] `throttle_classes` on all public-facing and mutation endpoints (rate limiting)
+- [ ] `DEFAULT_THROTTLE_RATES` configured in settings (anon + user rates)
+- [ ] Integration test: full request → serializer → DB → response cycle verified
 - [ ] Migrations created: `python manage.py makemigrations <app_name>` and applied: `python manage.py migrate`
 - [ ] Full `admin.py` registration with soft-delete override
 - [ ] Silk/debug-toolbar checked — zero N+1 confirmed
