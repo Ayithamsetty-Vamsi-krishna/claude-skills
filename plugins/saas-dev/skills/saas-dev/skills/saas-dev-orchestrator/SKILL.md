@@ -1,6 +1,6 @@
 ---
 name: saas-dev-orchestrator
-description: "Reads business + technical PRDs. Extracts all features + build order. Loops through saas-dev brainstorm → plan → execute for each feature. Maintains app-level continuity via CLAUDE.md. Full end-to-end automation from PRD to complete app."
+description: "Reads business + technical PRDs. Extracts all features. Builds complete task breakdown document (BUILD_PLAN.md). Asks user confirmation via ask_user_input_v0 (all features / specific features / reorder). Then runs brainstorm → plan → execute loop per feature with continuity via CLAUDE.md."
 triggers:
   - "build from PRD"
   - "build the app"
@@ -14,224 +14,342 @@ triggers:
 
 You are the conductor for building an entire SaaS application from PRDs.
 
-**Input required:** business-prd.md + technical-prd.md (+ optional designs/ folder with interactive prototypes)
+**Input required:** business-prd.md + technical-prd.md (+ optional designs/ folder)
+**Output:** BUILD_PLAN.md saved first, user confirms, then full app built feature by feature.
 
-**Output:** A complete, tested, production-ready SaaS application built feature-by-feature through the saas-dev pipeline.
+---
 
-## Your Goal
+## Phase 1: PRD Analysis (COMPLETELY SILENT)
 
-1. **Read PRDs** and extract all features + requirements
-2. **Create build order** with dependency graph
-3. **For each feature:** Invoke saas-dev brainstorm → plan → execute
-4. **Maintain continuity** via CLAUDE.md updates after each feature
-5. **Checkpoint after every 3-5 features** for code review
-6. **Deliver complete app** ready for deployment
+Before asking or showing anything, silently do ALL of this:
 
-## Phase 1: PRD Analysis (SILENT)
+### 1A — Read business-prd.md
+Extract:
+- App name and purpose (one sentence)
+- Full feature list with user stories
+- User roles (who uses the app)
+- Business rules per feature
+- Integration requirements
 
-Before asking anything, do this:
+### 1B — Read technical-prd.md
+Extract:
+- Architecture decisions
+- Data models mentioned per feature
+- APIs required per feature
+- Third-party integrations (Stripe, Celery, ES, etc.)
+- Security requirements
+- Performance requirements
 
-1. **Read business-prd.md** — extract:
-   - Feature list with user stories
-   - Business rules + requirements
-   - User roles + permissions
-   - Integration requirements
+### 1C — Read designs/ folder (if exists)
+For each subfolder found:
+- List .html prototype files
+- List .md flow documents
+- Map each design file to its feature
 
-2. **Read technical-prd.md** — extract:
-   - Architecture overview
-   - Data models mentioned
-   - APIs required
-   - Third-party integrations (Stripe, etc.)
-   - Scalability + performance requirements
-   - Security + compliance needs
+### 1D — Build Dependency Graph
+Determine strict build order:
+- Foundation first (BaseModel, settings, CLAUDE.md setup)
+- Auth before anything requiring user context
+- Core models before features that reference them
+- Integrations after core features are stable
+- Admin/reporting last (depends on all)
 
-3. **Check for designs/ folder** — if exists:
-   - List all interactive HTML prototypes found
-   - List all flow documents
-   - Map designs to features
+Example graph:
+```
+0. Foundation  → depends on: nothing
+1. Auth        → depends on: 0
+2. [Feature A] → depends on: 0, 1
+3. [Feature B] → depends on: 0, 1
+4. [Feature C] → depends on: 2
+5. Admin       → depends on: 1, 2, 3
+```
 
-4. **Build dependency graph**:
-   - Which features must come first? (e.g., auth before payments)
-   - Are there shared components? (e.g., user model for auth + invoicing)
-   - What's the critical path?
+### 1E — Break Each Feature Into Sub-Tasks
 
-5. **Create build schedule**:
-   ```
-   Week 1: Foundation
-   - Feature 1: [name] (depends on: none)
-   - Feature 2: [name] (depends on: Feature 1)
-   
-   Week 2: Core features
-   - Feature 3: [name] (depends on: Features 1-2)
-   - Feature 4: [name] (depends on: Feature 2)
-   
-   Week 3: Advanced features
-   - Feature 5: [name] (depends on: Features 3-4)
-   
-   Week 4: Admin + Reporting
-   - Feature 6: [name] (depends on: all)
-   ```
-
-## Phase 2: Extract and Present Build Plan
-
-Once PRDs are analyzed, ask the user for approval via ask_user_input_v0:
+For EVERY feature, create its full task list now (before asking user anything).
+Use the same 2-5 min task format from saas-dev-plan but at a higher level:
 
 ```
-Extracted from your PRDs:
+Feature: [Name]
+Estimated total time: ~X hours
+Tasks:
+  - Foundation: models + migrations
+  - Backend: serializers + views + URLs
+  - Backend Tests: happy path + auth + edge cases
+  - Frontend: pages + components (design: designs/[feature]/*.html if exists)
+  - Frontend Tests: rendering + interaction
+  - Integration: CLAUDE.md update + commit
+```
 
-**Business PRD Summary:**
-- [one paragraph of what the app does]
+---
 
-**Technical PRD Summary:**
-- Models: [list]
-- Integrations: [list]
-- Key non-functional requirements: [list]
+## Phase 2: Save BUILD_PLAN.md
 
-**Build Order (Dependency Graph):**
-1. [Feature] - Week 1
-2. [Feature] - Week 1
-3. [Feature] - Week 2
+Once Phase 1 is complete, write `BUILD_PLAN.md` to the project root.
+
+**This is the master document. It shows everything before a single line of code is written.**
+
+Format:
+
+```markdown
+# BUILD_PLAN.md
+Generated by saas-dev-orchestrator from PRDs.
+
+## App Overview
+[one paragraph from business PRD]
+
+## Architecture Summary
+[one paragraph from technical PRD: stack, auth pattern, multi-tenancy, key integrations]
+
+## Designs Found
+[list design files found in designs/ folder, or "No designs folder found"]
+
+## Feature Dependency Graph
+```
+0. Foundation (depends on: nothing)
+1. Auth (depends on: 0)
+2. Invoicing (depends on: 0, 1)
+3. Payments (depends on: 1, 2)
+4. Admin Dashboard (depends on: 1, 2, 3)
+5. Customer Portal (depends on: 2, 3)
+```
+
+## Full Feature Breakdown
+
+### Feature 0: Foundation
+**Purpose:** CLAUDE.md setup, BaseModel, base settings, Docker, CI skeleton
+**Depends on:** nothing
+**Estimated time:** ~2 hours
+**Specialist skills:** django-project-setup
+**Sub-tasks:**
+- [ ] Initialize Django project structure + app layout
+- [ ] Create BaseModel (id, created_by, updated_by, created_at, updated_at, is_deleted, deleted_at)
+- [ ] Create AuditMixin + SoftDeleteMixin
+- [ ] Configure settings (base, local, production)
+- [ ] Configure CLAUDE.md v2 (§1-8 populated from PRDs)
+- [ ] Docker Compose setup (Django + Postgres + Redis)
+- [ ] CI skeleton (GitHub Actions)
+- [ ] Run: pytest passes with empty test suite
+
+### Feature 1: Authentication
+**Purpose:** [from business PRD]
+**Depends on:** Feature 0
+**Estimated time:** ~4 hours
+**Specialist skills:** django-auth-dev + react-frontend-dev
+**Designs:** designs/auth/ (login.html, signup.html, 2fa-setup.html)
+**Sub-tasks:**
+- [ ] StaffUser model (AbstractBaseUser, primary=True)
+- [ ] CustomerUser model (AbstractBaseUser, primary=False)
+- [ ] UserTypeAuthMiddleware
+- [ ] JWT tokens per user type
+- [ ] Login + register + refresh endpoints
+- [ ] 2FA setup (django-otp + recovery codes)
+- [ ] OTPAdminSite
+- [ ] Login page (matching designs/auth/login.html)
+- [ ] Signup page (matching designs/auth/signup.html)
+- [ ] 2FA setup page (matching designs/auth/2fa-setup.html)
+- [ ] Backend tests (auth flows, 2FA, JWT, RBAC)
+- [ ] Frontend tests (form submission, error states)
+- [ ] CLAUDE.md §9 update + commit
+
+### Feature 2: [Feature Name]
+**Purpose:** [from business PRD]
+**Depends on:** Feature 0, 1
+**Estimated time:** ~X hours
+**Specialist skills:** django-backend-dev + react-frontend-dev [+ others]
+**Designs:** designs/[feature]/ [or "No designs found for this feature"]
+**Sub-tasks:**
+- [ ] [task 1]
+- [ ] [task 2]
 ...
 
-**Interactive Designs Found:**
-[If designs/ folder exists]
-- invoicing/: [list mockups + flows]
-- auth/: [list mockups + flows]
-...
+[Continue for ALL features]
 
-Does this match your PRDs? (yes / adjust PRD / adjust order)
+## Build Schedule
+
+| Feature | Estimated Time | Depends On | Designs |
+|---|---|---|---|
+| 0. Foundation | ~2 hours | - | - |
+| 1. Auth | ~4 hours | 0 | auth/ |
+| 2. Invoicing | ~6 hours | 0, 1 | invoicing/ |
+| 3. Payments | ~4 hours | 1, 2 | payments/ |
+| 4. Admin Dashboard | ~5 hours | 1, 2, 3 | admin-dashboard/ |
+| 5. Customer Portal | ~3 hours | 2, 3 | - |
+| **TOTAL** | **~24 hours** | | |
+
+## Completion Tracking
+
+| Feature | Status | Commit | Completed |
+|---|---|---|---|
+| 0. Foundation | ⬜ Not started | - | - |
+| 1. Auth | ⬜ Not started | - | - |
+| 2. Invoicing | ⬜ Not started | - | - |
+| 3. Payments | ⬜ Not started | - | - |
+| 4. Admin Dashboard | ⬜ Not started | - | - |
+| 5. Customer Portal | ⬜ Not started | - | - |
 ```
 
-## Phase 3: Main Build Loop
+---
 
-Once user approves build plan, start the main loop:
+## Phase 3: User Confirmation (ask_user_input_v0)
+
+After saving BUILD_PLAN.md, show the user the plan and ask via ask_user_input_v0:
+
+**Question 1 — Scope:**
+```
+BUILD_PLAN.md saved. I found [N] features from your PRDs.
+Which features do you want to build?
+```
+Options:
+- "Build ALL features (full app)"
+- "Let me pick specific features"
+- "Start with foundation + first 2 features only"
+- "Adjust the build plan first"
+
+**Question 2 — Order (only if "Let me pick" chosen):**
+Use ask_user_input_v0 with multi_select showing all feature names.
+User selects which features to build and in which order.
+
+**Question 3 — Start confirmation:**
+```
+Ready to start building. This will:
+- Write code across [N] features
+- Take ~[X] hours of autonomous execution
+- Pause for your review every [3-5] features
+- Commit after each feature
+
+Shall I begin?
+```
+Options:
+- "Yes, start building"
+- "Review BUILD_PLAN.md first, then I'll say go"
+
+If user says "Review BUILD_PLAN.md first" → STOP. Wait for explicit "go" or "start".
+
+---
+
+## Phase 4: Main Build Loop
+
+Once user confirms, start the loop:
 
 ```
-FOR each feature in build_order:
+FOR each feature in confirmed_feature_list (in dependency order):
 
-  IF user wants checkpoint (every 3-5 features):
-    SHOW: "Completed Features [list]. Code ready for review."
-    WAIT for user: "Continue" or "Review changes first"
-    IF review: STOP and show summary
-    IF continue: proceed
+  ANNOUNCE:
+    "🚀 Starting Feature [N]: [Name]
+     Estimated time: ~X hours
+     Depends on: [list]
+     Designs: [list or none]"
 
-  STEP 3A: Run brainstorm for this feature
-    - Extract feature description from PRDs
-    - Extract design mockups/flows for this feature
-    - Reference both PRD sections + design files
-    - Use ask_user_input_v0 for all design questions
-    - Save saas-dev-spec.md in feature branch
+  STEP 4A — Brainstorm this feature:
+    - Extract feature section from business-prd.md
+    - Extract feature section from technical-prd.md
+    - Read design files for this feature (if exist)
+    - Read CLAUDE.md §7 (decisions from previous features)
+    - Run brainstorm using ask_user_input_v0 for all questions
+    - Save saas-dev-spec.md
 
-  STEP 3B: Run plan for this feature
+  STEP 4B — User approves spec (ask_user_input_v0):
+    - "Spec saved for [feature]. Does this match your PRD?"
+    - Options: "Yes, create plan" / "Adjust spec" / "Skip this feature"
+
+  STEP 4C — Plan this feature:
     - Read saas-dev-spec.md
-    - Break into 2-5 min tasks
+    - Break into 2-5 min tasks with exact files + verification
+    - Design references in frontend tasks
     - Save saas-dev-plan.md
-    - Ask user to review + approve
 
-  STEP 3C: Run execute for this feature
+  STEP 4D — User approves plan (ask_user_input_v0):
+    - "Plan saved. [N] tasks. ~X min. Ready to implement?"
+    - Options: "Yes, execute" / "Adjust plan" / "Skip this feature"
+
+  STEP 4E — Execute this feature:
     - Spawn subagents per task
+    - Each gets: task + specialist skill + design file (if frontend)
     - Two-stage review after each task
     - Write progress to saas-dev-progress.md
-    - Run tests
 
-  STEP 3D: Finalize feature
+  STEP 4F — Finalize:
+    - Update saas-dev-progress.md: mark task list complete
     - Update CLAUDE.md §9 (recent_changes)
-    - Commit: git commit -m "feat: [feature] — saas-dev v4.1.x"
-    - Update build progress file: BUILD_LOG.md
-    - Move to next feature
+    - Update BUILD_PLAN.md completion tracking row: "✅ Done [commit] [date]"
+    - Commit: "feat: [feature name] — saas-dev v4.2.0"
+    - Show: "✅ Feature [N] complete. [X] models, [Y] endpoints, [Z] tests"
 
-AFTER all features done:
-  → Full test suite run
-  → CLAUDE.md §1-9 validated
-  → Final commit: git commit -m "release: Complete app v1.0.0"
-  → Show summary of all features built
+  IF feature index % 3 == 0 OR user said "checkpoint":
+    RUN CHECKPOINT (see below)
 ```
 
-## Phase 4: Continuity Management
+---
 
-**CLAUDE.md is the source of truth:**
+## Phase 5: Checkpoints
 
-At the **start of each feature**, brainstorm reads CLAUDE.md §7 (architecture decisions from previous features) to ensure consistency.
+After every 3 features (or when user requests), pause:
 
-After **each feature** is implemented, orchestrator updates:
-- §9 recent_changes: "Feature X implemented. [Y] models, [Z] endpoints, [N] components."
-- §2 project_metadata: Update feature completion status
-- §5 environment_variables: Add any new env vars needed
-- §4 dependency_registry: Add any new packages
-
-**Build log file** (BUILD_LOG.md):
-```markdown
-# Orchestrated Build Log
-
-## Completed Features
-- Feature 1: Invoicing ✅ [commit hash] [completed date]
-- Feature 2: Auth ✅ [commit hash] [completed date]
-- Feature 3: Payments ✅ [commit hash] [completed date]
-
-## In Progress
-- Feature 4: Reporting (Task 3 of 8, 38% complete)
-
-## Summary
-[lines of code added], [models created], [endpoints created], [components built], [tests written]
 ```
+✅ CHECKPOINT — Features [list] complete
+
+Summary:
+- Models created: [N]
+- REST endpoints: [N]
+- React pages/components: [N]
+- Tests written: [N] (all passing)
+- Commits: [N]
+
+BUILD_PLAN.md updated. Next up: [Feature N+1]
+
+Continue building? (ask_user_input_v0)
+Options: "Yes, continue" / "Stop for code review" / "Adjust remaining features"
+```
+
+---
+
+## Phase 6: Final Validation
+
+After all features done:
+
+- [ ] Full test suite: `pytest --tb=short`
+- [ ] Frontend tests: `vitest run`
+- [ ] Migration check: `python manage.py migrate --check`
+- [ ] `check-sync.sh` if it exists
+- [ ] Security checklist: auth, encryption, SSRF, webhook signing
+- [ ] CLAUDE.md §1-9 all populated
+- [ ] BUILD_PLAN.md all rows marked ✅
+
+If all pass:
+```
+git commit -m "release: v1.0.0 — Complete SaaS app from PRD
+
+Features: [list all N features]
+Stats: [models, endpoints, components, tests]"
+
+git tag v1.0.0
+```
+
+Tell user:
+
+> **✅ App complete. v1.0.0 tagged.**
+> BUILD_PLAN.md shows full completion summary.
+> Ready for staging deployment.
+
+---
+
+## Error Handling Rules
+
+- **Tests red after a task** → stop execute, fix inline, re-run tests, then continue
+- **Spec doesn't match PRD** → surface to user via ask_user_input_v0, adjust before planning
+- **Design not found** → note "No design for this feature" in task, continue without design reference
+- **CLAUDE.md conflict** → show conflict, ask which decision wins before proceeding
+- **Never skip an error silently**
+
+---
 
 ## Key Rules
 
-1. **Design files are inputs, not outputs** — subagents build to match interactive prototypes exactly
-2. **ask_user_input_v0 only** — no inline questions during brainstorm
-3. **Zero code snippets** in spec/plan files — specialist skills provide patterns
-4. **One feature at a time** — maintain focus + clean commits
-5. **Tests always pass** — never move to next feature if tests red
-6. **CLAUDE.md always up-to-date** — next feature reads decisions from previous features
-7. **User approval gates** — brainstorm spec, plan, and every 5 features
-
-## When to Checkpoint (Pause for Code Review)
-
-After completing:
-- 3-5 features
-- Or whenever user requests ("Stop for review")
-- Or if tests start failing across multiple features
-
-Show:
-```
-✅ Checkpoint: Features [1-5] complete
-
-Code summary:
-- [X] models created
-- [Y] endpoints built
-- [Z] components implemented
-- [N] tests written (all passing)
-- [C] commits pushed
-
-Branch: main
-Last commit: [hash] — Feature 5 complete
-
-Ready for code review or continue building?
-```
-
-## Error Handling
-
-If a feature fails at any stage:
-
-1. **Brainstorm fails** → Show error, ask to adjust PRD
-2. **Plan fails** → Show error, ask to approve adjusted plan
-3. **Execute fails (tests red)** → Stop, show which task failed, fix inline before continuing
-4. **CLAUDE.md conflicts** → Show conflict, ask which decision wins
-
-Never skip or hide errors. Always show user the issue and get approval before proceeding.
-
-## Success Criteria
-
-App is complete when:
-- [ ] All features from PRD implemented
-- [ ] All tests passing
-- [ ] CLAUDE.md fully populated (§1-9)
-- [ ] No hardcoded values (all in settings/env)
-- [ ] No N+1 queries
-- [ ] All specialist skill patterns applied
-- [ ] Design mockups match frontend implementation
-- [ ] Security checklist passed (auth, encryption, SSRF protection, etc.)
-- [ ] Deployment guide written (README + DEPLOYMENT.md)
-- [ ] Final commit tagged: v1.0.0
-
-Then: **Ready for production deployment.**
+1. **BUILD_PLAN.md is written FIRST** — before any questions, before any code
+2. **ask_user_input_v0 for ALL confirmations** — scope, order, spec approval, plan approval, checkpoints
+3. **Zero code snippets** in spec/plan — specialist skills provide patterns
+4. **Design files are inputs** — subagents build to match interactive prototypes exactly
+5. **CLAUDE.md is the continuity layer** — read at start of each feature, updated at end
+6. **Tests always pass** before moving to next feature
+7. **One commit per feature** — clean git history
