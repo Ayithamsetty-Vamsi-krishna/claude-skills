@@ -33,7 +33,13 @@ Produce a `saas-dev-spec.md` that captures:
 2. **Read existing models** — scan `*/models.py` for patterns, relationships, audit fields
 3. **Read existing views** — check `*/views.py` for DRF patterns in use
 4. **Check tests** — scan `*/tests/` to understand existing test structure
-5. **Identify specialist skills to load**:
+5. **Read PRDs if available** — extract feature requirements from business-prd.md + technical-prd.md
+6. **Read design files if available** ← NEW
+   - Check if `designs/[feature]/` folder exists
+   - Read all `.html` files (exported from Claude Design)
+   - Read all `.md` files in design folder (flows, component trees, design decisions)
+   - Extract: component names, page layout, user flows, interaction patterns
+7. **Identify specialist skills to load**:
    - Touches auth/2FA → `django-auth-dev`
    - Touches models/serializers/views → `django-backend-dev`
    - Touches payments/webhooks/email/PDF/files → `django-integrations-dev`
@@ -82,8 +88,13 @@ Once each Q&A phase completes, present the design. Use narrative only — no cla
 ### 3C — Business Logic
 "Invoice numbering via sequential code generation. Email job queued to Celery with 3-retry backoff. PDF generation via WeasyPrint. Multi-tenant isolation enforced at query level. Audit log captures create/update/delete."
 
-### 3D — Frontend
-"Pages: InvoiceList (table, filters by status/date), InvoiceDetail (form edit before sent, view-only after). Components: InvoiceTable, InvoiceForm, PDFPreview. Redux slice for invoices state."
+### 3D — Frontend (WITH DESIGN REFERENCES) ← UPDATED
+"Pages and components:
+- **InvoiceList page** (design: designs/invoicing/invoice-list.html): Table with [columns from design], filters, sorting, pagination
+- **InvoiceDetail page** (design: designs/invoicing/invoice-detail.html): Form for draft editing, read-only for sent/paid
+- **InvoiceForm component** (design: designs/invoicing/invoice-form.html): Reusable create/edit form with line items table, auto-calc totals
+- **User Flows** (design: designs/invoicing/flows.md): Create draft → select customer → add items → send → Stripe payment
+Design files validated and integrated."
 
 ### 3E — Test Plan
 "Backend: CRUD happy path, validation, soft-delete, auth/permission gates, multi-tenant isolation, Celery task. Frontend: list rendering, form submission, error states, loading states."
@@ -111,7 +122,26 @@ List of endpoints (method + path) + auth requirement. No request/response bodies
 Narrative of how the feature works end-to-end. Mentions patterns (audit log, Celery, soft-delete, sequential codes, feature flags, etc.) by name.
 
 ## Frontend
-List of pages and components. Names only. No mock layouts or component props.
+List of pages and components with design file references.
+
+Example:
+- **InvoiceList page** (design: designs/invoicing/invoice-list.html)
+  Table showing customer invoices with status, amount, due date. Filters by date/status. Sortable. Paginated.
+  
+- **InvoiceDetail page** (design: designs/invoicing/invoice-detail.html)
+  View and edit invoice. Edit only available for draft status. Shows line items, totals, tax. Send button for draft invoices.
+
+## User Flows
+Described from designs/invoicing/flows.md (if available):
+- Create invoice: click button → select customer → add items → review → save as draft
+- Send invoice: draft invoice → click send → email queued → Stripe payment link in email
+- Pay invoice: customer receives email → clicks link → Stripe checkout → invoice marked paid
+
+## Design Files Referenced
+If designs/ folder exists:
+- designs/invoicing/invoice-list.html
+- designs/invoicing/invoice-detail.html
+- designs/invoicing/flows.md
 
 ## Test Plan
 Categories: happy path, validation, auth, soft-delete, multi-tenant isolation, Celery, error handling.

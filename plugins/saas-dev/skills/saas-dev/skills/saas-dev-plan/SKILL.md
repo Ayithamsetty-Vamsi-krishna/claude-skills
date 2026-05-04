@@ -81,6 +81,7 @@ Each task follows this exact template:
 **Estimated time:** [2-5 min]
 **Depends on:** [Task numbers, or "none"]
 **Specialist skill to load:** [django-backend-dev / react-frontend-dev / etc.]
+**Design reference:** [If frontend task: path to design file, e.g., designs/invoicing/invoice-list.html]
 
 ### What to do
 [2-4 sentences describing exactly what to implement, at a high level.
@@ -99,28 +100,35 @@ No code snippets. Narrative only.]
 ## Example Task (ZERO code)
 
 ```
-## Task 3: Create Invoice serializer
-**Phase:** 1
-**Estimated time:** 3 min
-**Depends on:** Task 1 (Invoice model)
-**Specialist skill to load:** django-backend-dev
+## Task 6: InvoiceList React component
+**Phase:** 3 (Frontend)
+**Estimated time:** 4 min
+**Depends on:** Task 5 (Redux slice)
+**Specialist skill to load:** react-frontend-dev
+**Design reference:** designs/invoicing/invoice-list.html
 
 ### What to do
-Create an Invoice serializer following the django-backend-dev dual FK pattern:
-write field accepts the customer ID for POST/PATCH operations, read field
-returns the full nested customer object. Apply FilteredListSerializer for
-list endpoints. Include all Invoice fields from the data model.
+Build the InvoiceList React component matching the design file. Render a table showing
+invoices with columns extracted from the design (invoice number, customer, amount, status, due date).
+Add filters for status/date range and sorting. Implement pagination using RTK Query.
+Load invoice data from Redux store and display with loading/error states.
 
 ### Exact file(s)
-- `invoicing/serializers.py` — new file, add InvoiceSerializer class
+- `invoicing/frontend/src/features/invoicing/pages/InvoiceList.tsx` — new file, InvoiceList component
 
 ### Verification
-- [ ] `from invoicing.serializers import InvoiceSerializer` imports without error
-- [ ] InvoiceSerializer has customer_id (write) and customer (read nested) fields
-- [ ] `pytest invoicing/tests/test_serializers.py -v` passes
+- [ ] Component renders without errors
+- [ ] Table layout matches designs/invoicing/invoice-list.html structure
+- [ ] Filters work (status dropdown, date range picker)
+- [ ] Sorting works on all columns
+- [ ] Pagination controls present and functional
+- [ ] Loading skeleton renders while data fetches
+- [ ] Error boundary displays error state
+- [ ] pytest invoicing/frontend/src/features/invoicing/pages/InvoiceList.test.tsx passes
 ```
 
-Note: **No class definition**, **no field list**, **no Meta options**. The specialist skill (loaded during execution) will provide all those patterns.
+Note: **No component structure or HTML markup**. Design file provides the layout. Specialist skill (react-frontend-dev) provides the patterns.
+
 
 ## Save the Plan
 

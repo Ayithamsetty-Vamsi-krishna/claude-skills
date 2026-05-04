@@ -71,14 +71,18 @@ TASK (from saas-dev-plan.md):
 SPECIALIST SKILL TO LOAD:
 [paste the specialist skill listed in the task]
 
+DESIGN REFERENCE (if frontend task):
+[paste contents of design file listed in task, e.g., designs/invoicing/invoice-list.html]
+
 CURRENT FILE STATE:
 [paste current contents of files the task modifies]
 
 YOUR JOB:
 1. Use the specialist skill patterns
-2. Implement exactly what the task describes
-3. Run the verification steps
-4. Report: DONE or BLOCKED [reason]
+2. Build the component/page to match the design (if frontend task)
+3. Implement exactly what the task describes
+4. Run the verification steps
+5. Report: DONE or BLOCKED [reason]
 
 Do not implement anything outside this task.
 Do not read files not listed in the task.
