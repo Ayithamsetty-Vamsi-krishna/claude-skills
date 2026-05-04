@@ -298,33 +298,39 @@ FOR each feature in confirmed_feature_list (in dependency order):
     - Two-stage review after each task
     - Write progress to saas-dev-progress.md
 
-  STEP 4F — User Approval Gate (ask_user_input_v0) ← REQUIRED BEFORE MARKING COMPLETE
-    Show summary then ask via ask_user_input_v0:
-      "✅ Feature [N] [Name] — [X] tasks done, all tests passing.
-       Built: [models/endpoints/pages summary]. Tests: [N] passing.
-       Approve and move to Feature [N+1]: [Name]?"
-    Options:
-      - "✅ Approve — mark complete, start next feature"
-      - "🔍 Let me review the code first (I'll say 'continue' when ready)"
-      - "🔁 Something is wrong — re-run this feature"
-      - "⏸ Stop here, I'll resume later"
+  STEP 4F — Auto-Complete + Notify (with reject/reopen window)
 
-    IF Approve:
-      - Update CLAUDE.md §9 (recent_changes)
-      - Update BUILD_PLAN.md: "✅ Done [commit] [date]"
-      - Commit: "feat: [feature name] — saas-dev v4.2.0"
-      - Move to next feature
+    WHEN all tasks pass and tests are green:
 
-    IF Review code first:
-      - STOP. Do not commit. Wait for "continue" or "approved"
-      - Then update BUILD_PLAN.md + commit + proceed
+    1. AUTO-MARK the feature complete immediately:
+       - Update CLAUDE.md §9 (recent_changes)
+       - Update BUILD_PLAN.md: "✅ Auto-completed [commit] [date]"
+       - Commit: "feat: [feature name] — saas-dev v4.3.0"
 
-    IF Something is wrong:
-      - Ask what the issue is via ask_user_input_v0, fix it, re-run approval gate
+    2. NOTIFY user via ask_user_input_v0:
+       "✅ Feature [N]: [Name] auto-completed.
+        Built: [X] models, [Y] endpoints, [Z] pages. [N] tests passing.
+        Commit: [hash]. Continuing to Feature [N+1]: [Name].
+        Want to reject or pause?"
+       Options:
+         - "🚀 Continue to next feature"
+         - "🔁 Reject this feature — something is wrong"
+         - "⏸ Pause — I want to review before continuing"
 
-    IF Stop here:
-      - Update BUILD_PLAN.md: "⏸ Paused — awaiting user [date]"
-      - Tell user: "Saved. Say 'continue build' to resume."
+    IF Continue (default — also assumed if user does not respond):
+      - Proceed to next feature
+
+    IF Reject:
+      - Revert commit: git revert HEAD --no-edit
+      - Update BUILD_PLAN.md: "🔁 Reopened [date] — user rejected"
+      - Ask via ask_user_input_v0: "What needs to be fixed?"
+      - Fix the issue, re-run affected tasks only
+      - Auto-complete again when fixed + tests green
+
+    IF Pause:
+      - Update BUILD_PLAN.md: "⏸ Paused [date] — review in progress"
+      - Tell user: "Build paused. Feature [N] committed at [hash].
+        Say 'continue build' when ready to proceed to Feature [N+1]."
       - STOP execution loop
 
   IF feature index % 3 == 0 OR user said "checkpoint":

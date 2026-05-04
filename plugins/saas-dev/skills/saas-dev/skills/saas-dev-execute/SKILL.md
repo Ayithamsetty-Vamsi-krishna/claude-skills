@@ -62,7 +62,7 @@ FOR each task in saas-dev-plan.md (in dependency order):
 
 Before spawning any subagent for a **frontend task** (React, Next.js, Flutter, landing page, component, page):
 
-1. Load `saas-dev-ui` skill
+1. Load `saas-dev-ui-react` (if React/Next.js task) OR `saas-dev-ui-flutter` (if Flutter task)
 2. Generate the design system for this feature (Step 2 of saas-dev-ui)
 3. Include the design system output in the subagent context
 

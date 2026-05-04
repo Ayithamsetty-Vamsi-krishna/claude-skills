@@ -46,7 +46,8 @@ These skills are **NOT** always present. They load during execution:
 | Skill | Loads when... |
 |---|---|
 | **saas-dev-orchestrator** | **User uploads PRDs + says "build from PRD" — runs end-to-end app build** |
-| **saas-dev-ui** | **Any frontend task — generates design system + premium UI patterns (glass, aurora, neumorphism, Flutter)** |
+| **saas-dev-ui-react** | **React/Next.js frontend tasks — glassmorphism, aurora, neumorphism, animated landing pages, dashboards** |
+| **saas-dev-ui-flutter** | **Flutter frontend tasks — glassmorphism cards, smooth transitions, flutter_animate, Riverpod, cross-platform** |
 | `django-backend-dev` | Task requires models, serializers, views, permissions, soft-delete, audit |
 | `django-auth-dev` | Task requires 2FA, JWT, auth middleware, RBAC |
 | `django-integrations-dev` | Task requires payments, webhooks, email, PDF, file uploads, Celery |
