@@ -1,0 +1,49 @@
+# saas-dev
+
+> Enterprise SaaS scaffolding skills for Django + React/Next.js — 107 reference files, 5 specialist skills, Superpowers-style autonomous pipeline.
+
+## What is saas-dev?
+
+saas-dev is a Claude Code skills marketplace plugin that packages production-grade Django + React SaaS patterns as agent skills. It covers the enterprise baseline (audit logs, 2FA, multi-tenancy, feature flags, full-text search, webhooks, encryption, structured logging, Prometheus metrics, distributed tracing, database pooling, Kubernetes deployment, GDPR compliance) plus a Superpowers-style brainstorm → plan → execute pipeline for autonomous feature development.
+
+## Install
+
+- Claude Code: `/plugin marketplace add Ayithamsetty-Vamsi-krishna/claude-skills`
+- Antigravity / Cursor / Codex / Gemini CLI: `git clone` then copy `plugins/saas-dev/skills/saas-dev` to your tool's skills directory
+
+## Repository
+
+- URL: https://github.com/Ayithamsetty-Vamsi-krishna/claude-skills
+- Version: 4.0.0
+- License: MIT
+
+## Specialist Skills
+
+- **django-project-setup**: New project scaffolding with 8 Phase 0 architecture questions, CLAUDE.md v2 generation, initial settings
+- **django-backend-dev**: DRF Generics, BaseModel, AuditMixin, SoftDeleteMixin, dual FK serializers, FilteredListSerializer, audit log, multi-tenancy, feature flags, Postgres FTS, Elasticsearch, field encryption, GDPR
+- **django-auth-dev**: Pattern C multi-user auth (StaffUser + CustomerUser), 2FA via django-otp, JWT per user type, RBAC, token revocation
+- **django-integrations-dev**: Stripe, S3 uploads, email, webhooks (JWT-signed), PDF (WeasyPrint + ReportLab), Celery, Redis
+- **django-devops-dev**: Docker, GitHub Actions, structlog, Prometheus, OpenTelemetry, Sentry Performance, PgBouncer, blue/green deployment, Kubernetes rolling deployment
+
+## Autonomous Pipeline Skills
+
+- **using-saas-dev**: Bootstrap skill — loads at session start, auto-wires brainstorm → plan → execute
+- **saas-dev-brainstorm**: Socratic design discussion before writing code, saves spec to saas-dev-spec.md
+- **saas-dev-plan**: Breaks approved spec into 2–5 min tasks with exact file paths and verification steps
+- **saas-dev-execute**: Dispatches fresh subagent per task, two-stage review gate, writes progress to saas-dev-progress.md
+
+## CLAUDE.md v2
+
+saas-dev introduces a structured CLAUDE.md v2 format with 9 sections: schema_version, project_metadata, skill_version_used, dependency_registry, environment_variables, third_party_integrations, architecture_decisions (ADR-lite), known_issues, recent_changes.
+
+## Compatible Tools
+
+Claude Code, Google Antigravity, Cursor, OpenAI Codex CLI, Gemini CLI, OpenCode, Amp, Kiro, Windsurf — uses the open Agent Skills standard (agentskill.sh).
+
+## Author
+
+Ayithamsetty Vamsi Krishna — https://github.com/Ayithamsetty-Vamsi-krishna
+
+## Topics / Keywords
+
+django, react, nextjs, typescript, saas, enterprise, multi-tenancy, audit-logging, 2fa, feature-flags, full-text-search, elasticsearch, postgres, field-encryption, gdpr, prometheus, opentelemetry, kubernetes, blue-green-deployment, pgbouncer, claude-code, antigravity, agent-skills, skill-marketplace
