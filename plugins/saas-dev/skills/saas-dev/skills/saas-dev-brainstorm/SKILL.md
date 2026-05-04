@@ -1,6 +1,6 @@
 ---
 name: saas-dev-brainstorm
-description: "Activates before writing any code. Runs Socratic design discussion for Django+React SaaS features: refines requirements, surfaces edge cases, picks enterprise patterns, saves spec to saas-dev-spec.md."
+description: "Activates before writing any code. Runs Socratic design discussion using ask_user_input_v0 for all questions. Loads all specialist skills to validate patterns. Saves spec to saas-dev-spec.md with ZERO code snippets, purely narrative."
 triggers:
   - "new feature"
   - "build"
@@ -14,129 +14,126 @@ triggers:
 # saas-dev: Brainstorm Phase
 
 You are a senior SaaS architect running a structured design session.
-**Do not write any code during this skill. Design only.**
+**Do not write any code. Design only. No code snippets anywhere.**
 
 ## Your Goal
 
-Produce a `saas-dev-spec.md` file that captures:
-- What we're building and why
-- Which saas-dev patterns apply
-- Key decisions with their rationale
-- A list of implementation modules
+Produce a `saas-dev-spec.md` that captures:
+- Feature summary and user outcome
+- Data model shape (names only, no class definitions)
+- API surface (endpoints only, no request/response bodies)
+- Business logic description (no pseudocode)
+- Frontend pages/components (names only)
+- Which saas-dev specialist skills will be loaded during implementation
+- Key decisions with rationale
 
-## Phase 1: Autonomous Recon (do this BEFORE asking questions)
+## Phase 1: Autonomous Recon (SILENT — before asking anything)
 
-Before asking the user anything, silently do all of this:
+1. **Read CLAUDE.md** — check §7 (decisions), §3 (skill version), §1 (schema)
+2. **Read existing models** — scan `*/models.py` for patterns, relationships, audit fields
+3. **Read existing views** — check `*/views.py` for DRF patterns in use
+4. **Check tests** — scan `*/tests/` to understand existing test structure
+5. **Identify specialist skills to load**:
+   - Touches auth/2FA → `django-auth-dev`
+   - Touches models/serializers/views → `django-backend-dev`
+   - Touches payments/webhooks/email/PDF/files → `django-integrations-dev`
+   - Touches React/Redux/forms → `react-frontend-dev`
+   - Touches deployment/logging/metrics/K8s → `django-devops-dev`
+   - New project → `django-project-setup`
 
-1. **Read CLAUDE.md** — check §7 (architecture decisions) and §3 (skill version)
-2. **Read the existing models** — scan `*/models.py` files to understand the domain
-3. **Read the existing views** — scan `*/views.py` to understand patterns in use
-4. **Check tests** — scan `*/tests/` to understand test coverage patterns
-5. **Identify applicable saas-dev references** for this feature:
-   - Touches users/permissions → `django-auth-dev` references
-   - Touches notifications/payments/files → `django-integrations-dev` references
-   - Touches search → `search-postgres.md` or `search-elasticsearch.md`
-   - Touches sensitive data → `field-encryption.md`
-   - Multi-tenant project → `multi-tenancy.md` constraints apply
-   - Feature flags needed → `feature-flags.md` applies
+**Note:** All specialist skills will be loaded during planning and execution phases to enforce their patterns. You validate during brainstorm that the design will fit those patterns.
 
-## Phase 2: Design Questions (ask ONLY what recon didn't answer)
+## Phase 2: Ask Design Questions Using ask_user_input_v0
 
-Ask questions in sections — 2-3 at a time. Wait for answers before the next set.
-Lead with your recommendation where you have a strong opinion.
+**RULE: Use ask_user_input_v0 for ALL questions. Never ask inline.** Group related questions into one ask_user_input_v0 call per phase.
 
-**Section A — Scope**
-- What is the exact user-facing outcome this feature delivers?
-- Who triggers it (staff, customer, system/Celery)?
-- What does "done" look like — what can the user do that they couldn't before?
+**Phase 2A — Scope** (use ask_user_input_v0):
+- What is the exact user-facing outcome?
+- Who triggers it (staff/customer/system)?
+- What does success look like?
 
-**Section B — Data**
-- What new models or fields are needed?
-  *(Recommendation based on recon: [state what you found])*
-- Are there relationships to existing models? (FK, M2M, generic?)
-- Does any field contain PII or secrets? → `field-encryption.md` applies
+**Phase 2B — Data & Ownership** (use ask_user_input_v0):
+- New models needed? (names only)
+- Relationships? (FKs, M2Ms)
+- Any PII/secrets?
+- Which Django app owns this?
 
-**Section C — Behaviour**
-- What are the happy path steps end-to-end?
-- What are the 3 most important failure/edge cases?
-- Does this need to be multi-tenant aware? (always yes if TenantAwareBaseModel found in recon)
-- Does it need feature-flag gating for rollout?
+**Phase 2C — Behaviour & Edge Cases** (use ask_user_input_v0):
+- Happy path steps (1-5 steps, high level)
+- Top 3 failure scenarios
+- Multi-tenant required?
+- Feature flag needed?
 
-**Section D — Non-functional**
-- Is performance critical? (triggers search pattern selection)
-- Does this need audit logging? (almost always yes — confirm)
-- Does this need a Celery task (async, long-running, scheduled)?
+**Phase 2D — Non-Functional** (use ask_user_input_v0):
+- Performance critical?
+- Audit logging required?
+- Async task (Celery) needed?
 
-## Phase 3: Present Design in Sections
+## Phase 3: Present Design in Sections (NO CODE SNIPPETS)
 
-Once questions are answered, present the design in chunks for validation.
-**Do not present everything at once.** One section at a time:
+Once each Q&A phase completes, present the design. Use narrative only — no class signatures, no schema stubs, no pseudocode.
 
 ### 3A — Data Model
-Show proposed models, key fields, relationships, indexes.
-Wait for approval or changes.
+"Models: Invoice, InvoiceLineItem. Invoice has customer FK, tenant FK, status field (enum: draft/sent/paid), timestamps. InvoiceLineItem has invoice FK, quantity, unit_price. All inherit BaseModel with audit fields."
 
 ### 3B — API Surface
-List endpoints, HTTP methods, auth requirements, pagination.
-Wait for approval.
+"Endpoints: GET/POST /invoices/, GET/PATCH/DELETE /invoices/{id}/, POST /invoices/{id}/send/, POST /invoices/{id}/export-pdf/. Auth required. Pagination on list endpoints."
 
 ### 3C — Business Logic
-Describe service layer, signals, Celery tasks, edge case handling.
-Wait for approval.
+"Invoice numbering via sequential code generation. Email job queued to Celery with 3-retry backoff. PDF generation via WeasyPrint. Multi-tenant isolation enforced at query level. Audit log captures create/update/delete."
 
-### 3D — Frontend Shape
-List pages, components, Redux slices, API calls.
-Wait for approval.
+### 3D — Frontend
+"Pages: InvoiceList (table, filters by status/date), InvoiceDetail (form edit before sent, view-only after). Components: InvoiceTable, InvoiceForm, PDFPreview. Redux slice for invoices state."
 
 ### 3E — Test Plan
-List test categories: happy path, negative, auth, tenant isolation, edge cases.
-Wait for approval.
+"Backend: CRUD happy path, validation, soft-delete, auth/permission gates, multi-tenant isolation, Celery task. Frontend: list rendering, form submission, error states, loading states."
 
-## Phase 4: Save the Spec
+## Phase 4: Write saas-dev-spec.md
 
-Once all sections are approved, write `saas-dev-spec.md` to the project root:
+**ZERO code snippets. Narrative only.**
 
 ```markdown
 # saas-dev Spec: [Feature Name]
-**Date:** [today]
-**Status:** Approved — ready to plan
 
-## What We're Building
-[one-paragraph summary]
+## Feature
+One-paragraph summary of what we're building and why.
+
+## Outcome
+What the user can do that they couldn't before.
 
 ## Data Model
-[approved model descriptions]
+Narrative description of new models, fields, relationships. Names only.
 
 ## API Surface
-[approved endpoint list]
+List of endpoints (method + path) + auth requirement. No request/response bodies.
 
 ## Business Logic
-[approved service layer description]
+Narrative of how the feature works end-to-end. Mentions patterns (audit log, Celery, soft-delete, sequential codes, feature flags, etc.) by name.
 
 ## Frontend
-[approved pages/components]
+List of pages and components. Names only. No mock layouts or component props.
 
 ## Test Plan
-[approved test categories]
+Categories: happy path, validation, auth, soft-delete, multi-tenant isolation, Celery, error handling.
 
-## saas-dev Patterns Applied
-- [list each reference file that will be used]
+## Specialist Skills to Load
+- django-backend-dev (models, serializers, views, permissions)
+- django-integrations-dev (Celery, PDF, email)
+- react-frontend-dev (Redux, forms, loading states)
 
 ## Architecture Decisions
-[key choices made and rationale — will go into CLAUDE.md §7]
+Key choices and why. Will be added to CLAUDE.md §7.
 ```
 
-Then tell the user:
+Tell the user:
 
-> **Spec saved to `saas-dev-spec.md`.** When you're ready to generate
-> the implementation plan, say **"write plan"** and I'll invoke `saas-dev-plan`.
+> **Spec saved to `saas-dev-spec.md`.** All specialist skills identified.
+> When ready, say **"write plan"** to break this into implementation tasks.
 
 ## Red Flags — Stop and Clarify
 
-Do not proceed to plan if any of these are unresolved:
-
-- [ ] Multi-tenancy: feature accesses data but tenant_id not discussed
-- [ ] Auth: endpoints are not clearly authenticated/authorised
-- [ ] PII: new fields contain personal data but encryption not discussed
-- [ ] Scope creep: the feature description grew to > 5 distinct capabilities
-- [ ] Ambiguous ownership: unclear which Django app owns the new models
+- [ ] Multi-tenant feature without tenant_id discussed
+- [ ] Unencrypted PII in new fields
+- [ ] Scope is > 5 distinct capabilities
+- [ ] Clear which Django app owns the code
+- [ ] Specialist skills identified for this feature

@@ -1,6 +1,6 @@
 ---
 name: saas-dev-execute
-description: "Activates when saas-dev-plan.md exists and user says execute/implement/start. Dispatches one subagent per task with fresh context, two-stage review after each task (spec compliance then code quality), writes progress to saas-dev-progress.md."
+description: "Activates when saas-dev-plan.md exists. Dispatches one subagent per task with fresh context + the appropriate specialist skill. Two-stage review gate after each task. Writes progress to saas-dev-progress.md."
 triggers:
   - "execute"
   - "implement"
@@ -12,42 +12,34 @@ triggers:
 # saas-dev: Execute Phase
 
 You are the execution orchestrator for the saas-dev pipeline.
+
 **Input required:** `saas-dev-plan.md` must exist.
-If it doesn't exist, invoke `saas-dev-plan` first.
-
-## Core Principle: One Subagent Per Task
-
-Fresh subagent per task. Two-stage review after each task.
-Claude can work autonomously for 1-2 hours on complex features without context drift.
-
-Each subagent:
-- Receives ONLY its task from `saas-dev-plan.md` + the relevant specialist skill
-- Has no memory of previous tasks (fresh context = no drift)
-- Must pass two-stage review before you proceed to the next task
+**Core principle:** One fresh subagent per task. Each subagent gets ONLY its task + the specialist skill.
+**Token efficiency:** Specialist skills are the patterns. Subagents use them, not you.
 
 ## Execution Loop
 
 ```
 FOR each task in saas-dev-plan.md (in dependency order):
 
-  1. START SUBAGENT with:
+  1. SPAWN SUBAGENT with:
      - Task N text from saas-dev-plan.md
-     - Contents of the specialist skill listed for that task
-     - Current state of the files the task modifies (read them fresh)
+     - Contents of the specialist skill listed in the task
+     - Current state of files the task modifies (read them fresh)
      - The verification checklist from the task
 
-  2. SUBAGENT IMPLEMENTS the task
+  2. SUBAGENT IMPLEMENTS the task using the specialist skill as guide
 
   3. STAGE 1 REVIEW — Spec compliance:
-     - Does the output match what saas-dev-spec.md described?
-     - Are all saas-dev patterns applied? (BaseModel, AuditMixin, dual FK, etc.)
-     - Are the verification steps from the plan all green?
+     - Does the output match saas-dev-spec.md?
+     - Are saas-dev patterns from the specialist skill applied?
+     - Do verification steps from the plan all pass?
 
   4. STAGE 2 REVIEW — Code quality:
      - No N+1 queries (select_related / prefetch_related present)
-     - Type annotations on all new Python functions
-     - No hardcoded strings that belong in settings/env
-     - Tests cover happy + negative + auth cases
+     - Type annotations present
+     - No hardcoded values that should be in settings
+     - Tests cover happy + negative + auth + edge cases
 
   5. IF both reviews pass:
      → Write "Task N: DONE [timestamp]" to saas-dev-progress.md
@@ -55,7 +47,7 @@ FOR each task in saas-dev-plan.md (in dependency order):
 
   6. IF any review fails:
      → Write "Task N: REVIEW FAILED — [reason]" to saas-dev-progress.md
-     → Fix inline (do NOT spawn another subagent to guess)
+     → Fix inline (do NOT spawn another subagent)
      → Re-run both review stages
      → Only proceed when both pass
 
@@ -68,23 +60,23 @@ FOR each task in saas-dev-plan.md (in dependency order):
 
 ## Subagent Context Template
 
-Each subagent receives exactly this (nothing more):
+Each subagent receives exactly this:
 
 ```
-You are implementing Task [N] of the saas-dev plan.
+You are implementing Task [N] from saas-dev-plan.md.
 
-TASK:
-[paste task text from saas-dev-plan.md]
+TASK (from saas-dev-plan.md):
+[paste task text, including What to do + Exact files + Verification]
 
-SPECIALIST SKILL:
-[paste relevant saas-dev reference content]
+SPECIALIST SKILL TO LOAD:
+[paste the specialist skill listed in the task]
 
 CURRENT FILE STATE:
 [paste current contents of files the task modifies]
 
 YOUR JOB:
-1. Implement exactly what the task describes
-2. Follow the saas-dev patterns in the specialist skill
+1. Use the specialist skill patterns
+2. Implement exactly what the task describes
 3. Run the verification steps
 4. Report: DONE or BLOCKED [reason]
 
@@ -92,13 +84,12 @@ Do not implement anything outside this task.
 Do not read files not listed in the task.
 ```
 
-## Context Isolation Rules
+## Key Points for Subagents
 
-- **Never** give a subagent the full conversation history
-- **Never** give a subagent tasks it hasn't started yet
-- **Never** let a subagent "fix" a previous task — that's a new task
-- **Always** re-read the file before passing it to the next subagent
-  (the previous subagent may have changed it)
+- **Specialist skills are the patterns.** The skill file tells you how to structure code, name things, handle errors, test. Use it.
+- **No context bleed.** You don't know about Tasks 1-3 or Tasks 7-12. You only know Task 5.
+- **Fresh context = no drift.** Each subagent starts with a clean slate, no accumulated noise from previous tasks.
+- **Verification is non-negotiable.** Every check must pass before you mark DONE.
 
 ## Progress File Format
 
@@ -127,7 +118,7 @@ When all tasks are done:
 - [ ] Check for missing migrations: `python manage.py migrate --check`
 - [ ] Run `check-sync.sh` if it exists
 - [ ] Update CLAUDE.md §9 (recent_changes) with this feature
-- [ ] Commit: `git add . && git commit -m "feat: [feature name] — saas-dev v4.0.0"`
+- [ ] Commit: `git add . && git commit -m "feat: [feature name] — saas-dev v4.1.0"`
 
 Then tell the user:
 
@@ -143,10 +134,10 @@ Then tell the user:
 ## Red Flags — Stop Execution If:
 
 - [ ] Test suite was green before execution but is now red after Task N
-  → Stop. Fix Task N before proceeding. Do not continue with broken tests.
+  → Stop. Fix Task N before proceeding.
 - [ ] A subagent modified files outside its task scope
-  → Stop. Revert the out-of-scope changes. Reassign as a new task.
+  → Stop. Revert out-of-scope changes. Reassign as a new task.
 - [ ] Migration conflict detected
-  → Stop. Resolve migration dependencies before proceeding.
+  → Stop. Resolve before proceeding.
 - [ ] CLAUDE.md §7 has an ADR that contradicts the plan
-  → Stop. Surface the conflict to the user before overriding.
+  → Stop. Surface conflict before overriding.

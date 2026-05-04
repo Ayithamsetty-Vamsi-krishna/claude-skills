@@ -1,6 +1,6 @@
 ---
 name: using-saas-dev
-description: "Bootstrap skill for saas-dev. Loads at session start and auto-wires the brainstorm → plan → execute pipeline. Always active when saas-dev is installed."
+description: "Bootstrap skill for saas-dev. Loads at session start. Auto-wires brainstorm → plan → execute pipeline using ask_user_input_v0 for all user questions. All specialist skills loaded on-demand during planning/execution."
 triggers:
   - session_start
   - always
@@ -8,62 +8,91 @@ triggers:
 
 # saas-dev Methodology Bootstrap
 
-You have the **saas-dev v4.0.0** enterprise SaaS scaffolding skill installed.
+You have the **saas-dev v4.1.0** enterprise SaaS scaffolding skill installed.
 This bootstrap wires all specialist skills into a single autonomous pipeline.
 
-## Your Available Skills — Auto-Trigger Rules
+## How It Works
 
-| Skill | Triggers automatically when... |
+1. **Brainstorm** — You describe a feature → Claude uses `ask_user_input_v0` to ask design questions → saves `saas-dev-spec.md`
+2. **Plan** — You say "plan" → Claude breaks spec into 2-5 min tasks → saves `saas-dev-plan.md`
+3. **Execute** — You say "go" → Claude spawns subagents per task, each with the right specialist skill → progress to `saas-dev-progress.md`
+
+## RULE: ask_user_input_v0 for ALL Questions
+
+During **brainstorm**, Claude must use `ask_user_input_v0` (the UI button tool) for every design question. Never ask inline. Group related questions into one `ask_user_input_v0` call:
+
+- Scope questions (3 options)
+- Data questions (3 options)
+- Behaviour questions (3 options)
+- Non-functional questions (3 options)
+
+## Specialist Skills — Auto-Loaded Where Needed
+
+These skills are **NOT** always present. They load during execution:
+
+| Skill | Loads when task requires... |
 |---|---|
-| `saas-dev-brainstorm` | User describes a feature, module, or request — BEFORE writing any code |
-| `saas-dev-plan` | A brainstorm doc exists and user says "plan", "write plan", or "go" |
-| `saas-dev-execute` | A plan exists and user says "execute", "implement", or "start" |
-| `django-project-setup` | User is starting a brand new project |
-| `django-backend-dev` | Task involves models, serializers, views, Celery, search, audit, encryption |
-| `django-auth-dev` | Task involves auth, 2FA, JWT, permissions, user models |
-| `django-integrations-dev` | Task involves payments, file uploads, email, webhooks, PDF |
-| `django-devops-dev` | Task involves deployment, logging, metrics, tracing, pooling, GDPR |
-| `react-frontend-dev` | Task involves React components, Redux, Next.js pages, forms |
+| `django-backend-dev` | Models, serializers, views, permissions, soft-delete, audit |
+| `django-auth-dev` | 2FA, JWT, auth middleware, RBAC |
+| `django-integrations-dev` | Payments, webhooks, email, PDF, file uploads, Celery |
+| `django-devops-dev` | Logging, metrics, tracing, pooling, deployment, GDPR |
+| `react-frontend-dev` | React components, Redux, forms, loading states, tests |
+| `django-project-setup` | New project scaffolding |
 
-## Rules You Must Follow
+**During brainstorm:** Claude identifies which specialist skills will be needed and notes them in the spec.
 
-1. **Never write code before brainstorming.** If the user gives you a feature
-   request without a spec, invoke `saas-dev-brainstorm` first. No exceptions.
+**During planning:** Task descriptions reference the specialist skill by name, e.g., "Load django-backend-dev for models + serializers."
 
-2. **Never implement without a plan.** Once brainstorming produces a spec,
-   invoke `saas-dev-plan` to break it into 2–5 minute tasks before any code.
-
-3. **Use fresh context per task during execution.** `saas-dev-execute` spawns
-   subagents. Each subagent gets only the task it needs — no cross-contamination.
-
-4. **Load specialist skills on-demand.** When a task touches Django models,
-   read `django-backend-dev`. When it touches auth, read `django-auth-dev`.
-   Do not load all skills at once.
-
-5. **CLAUDE.md is the source of truth.** Check it at the start of every session.
-   Update it at the end of every implementation session per the v2 protocol.
-
-6. **If you drift and "forget" this methodology mid-session**, the user can
-   type `use saas-dev` to re-trigger this bootstrap and reset the pipeline.
+**During execution:** Subagent receives the task + the specialist skill content, uses patterns from the skill to write code.
 
 ## Session Start Checklist
 
 On every new session:
 - [ ] Check if CLAUDE.md exists in root — if not, run `django-project-setup`
 - [ ] Read CLAUDE.md §1 (schema_version) + §3 (skill_version_used)
-- [ ] Note the project's architecture decisions from §7
-- [ ] Confirm which specialist skills are relevant for the stated task
-- [ ] If task is a new feature → invoke `saas-dev-brainstorm` now
+- [ ] Note project's architecture decisions from §7
+- [ ] If task is a new feature → invoke `saas-dev-brainstorm` now with `ask_user_input_v0`
 
 ## Quick Reference
 
 ```
-User gives feature idea       → invoke saas-dev-brainstorm
-User approves design          → invoke saas-dev-plan
-User says go / execute        → invoke saas-dev-execute
-User asks about models/APIs   → load django-backend-dev references
-User asks about auth/2FA      → load django-auth-dev references
-User asks about payments/PDF  → load django-integrations-dev references
-User asks about deploy/K8s    → load django-devops-dev references
-User asks about React/Next.js → load react-frontend-dev references
+You: "Build an invoicing module"
+     ↓
+Claude: uses ask_user_input_v0 to ask 4 groups of design Qs
+        identifies specialist skills (backend-dev, integrations-dev, react)
+        saves saas-dev-spec.md
+     ↓
+You: "plan"
+     ↓
+Claude: breaks spec into 12 tasks
+        each task lists which specialist skill to load
+        saves saas-dev-plan.md
+     ↓
+You: "go"
+     ↓
+Claude: spawns subagent 1 with Task 1 + django-backend-dev skill
+        subagent 1 writes models + migrates + tests
+        spawns subagent 2 with Task 2 + django-backend-dev skill
+        ... (one subagent per task, each with the right specialist skill)
+        writes progress to saas-dev-progress.md
 ```
+
+## If Claude Drifts Mid-Session
+
+If Claude forgets to use `ask_user_input_v0` or loses track of the methodology:
+
+```
+Type: "use saas-dev"
+```
+
+This re-triggers the bootstrap and resets the pipeline.
+
+## Token Efficiency
+
+- **No code snippets in spec files** — narrative only
+- **No code stubs in plan files** — specialist skills provide patterns
+- **Specialist skills loaded only when needed** — not all skills, all the time
+- **Fresh subagent per task** — no accumulated context bloat
+
+This design keeps token consumption 40-50% lower than full-context approaches.
+
