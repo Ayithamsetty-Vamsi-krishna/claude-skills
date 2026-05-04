@@ -13,9 +13,22 @@ This bootstrap wires all specialist skills into a single autonomous pipeline.
 
 ## How It Works
 
+### **Single Feature (Recommended to start)**
+
 1. **Brainstorm** — You describe a feature → Claude uses `ask_user_input_v0` to ask design questions → saves `saas-dev-spec.md`
 2. **Plan** — You say "plan" → Claude breaks spec into 2-5 min tasks → saves `saas-dev-plan.md`
 3. **Execute** — You say "go" → Claude spawns subagents per task, each with the right specialist skill → progress to `saas-dev-progress.md`
+
+### **Complete App from PRDs (End-to-End Automation)**
+
+1. **Orchestrator** — You upload business-prd.md + technical-prd.md (+ designs/ folder) → say "build from PRD"
+2. Claude runs **orchestrator** skill which:
+   - Extracts all features from PRDs
+   - Creates build order with dependencies
+   - FOR each feature: runs brainstorm → plan → execute loop
+   - Maintains continuity via CLAUDE.md updates
+   - Checkpoints every 3-5 features for code review
+   - Delivers complete app ready for deployment
 
 ## RULE: ask_user_input_v0 for ALL Questions
 
@@ -30,13 +43,14 @@ During **brainstorm**, Claude must use `ask_user_input_v0` (the UI button tool) 
 
 These skills are **NOT** always present. They load during execution:
 
-| Skill | Loads when task requires... |
+| Skill | Loads when... |
 |---|---|
-| `django-backend-dev` | Models, serializers, views, permissions, soft-delete, audit |
-| `django-auth-dev` | 2FA, JWT, auth middleware, RBAC |
-| `django-integrations-dev` | Payments, webhooks, email, PDF, file uploads, Celery |
-| `django-devops-dev` | Logging, metrics, tracing, pooling, deployment, GDPR |
-| `react-frontend-dev` | React components, Redux, forms, loading states, tests |
+| **saas-dev-orchestrator** | **User uploads PRDs + says "build from PRD" — runs end-to-end app build** |
+| `django-backend-dev` | Task requires models, serializers, views, permissions, soft-delete, audit |
+| `django-auth-dev` | Task requires 2FA, JWT, auth middleware, RBAC |
+| `django-integrations-dev` | Task requires payments, webhooks, email, PDF, file uploads, Celery |
+| `django-devops-dev` | Task requires logging, metrics, tracing, pooling, deployment, GDPR |
+| `react-frontend-dev` | Task requires React components, Redux, forms, loading states, tests |
 | `django-project-setup` | New project scaffolding |
 
 **During brainstorm:** Claude identifies which specialist skills will be needed and notes them in the spec.
@@ -56,25 +70,32 @@ On every new session:
 ## Quick Reference
 
 ```
-You: "Build an invoicing module"
-     ↓
-Claude: uses ask_user_input_v0 to ask 4 groups of design Qs
-        identifies specialist skills (backend-dev, integrations-dev, react)
-        saves saas-dev-spec.md
-     ↓
-You: "plan"
-     ↓
-Claude: breaks spec into 12 tasks
-        each task lists which specialist skill to load
-        saves saas-dev-plan.md
-     ↓
-You: "go"
-     ↓
-Claude: spawns subagent 1 with Task 1 + django-backend-dev skill
-        subagent 1 writes models + migrates + tests
-        spawns subagent 2 with Task 2 + django-backend-dev skill
-        ... (one subagent per task, each with the right specialist skill)
-        writes progress to saas-dev-progress.md
+SINGLE FEATURE (you drive each iteration):
+  You: "Build an invoicing module"
+       ↓
+  Claude: uses ask_user_input_v0 → spec → plan → execute
+       ↓
+  You: "Next feature: auth"
+       ↓
+  Claude: brainstorm/plan/execute auth
+       ↓
+  You: "Next feature: payments"
+  ... (continue until all features done)
+
+COMPLETE APP FROM PRD (end-to-end automation):
+  You: "Build my app from PRD. Here's my business + technical PRDs (+ designs/)"
+       ↓
+  Claude (orchestrator):
+    1. Reads PRDs → extracts all features
+    2. Builds dependency graph
+    3. FOR each feature:
+         → brainstorm
+         → plan
+         → execute
+         → update CLAUDE.md
+         → commit
+    4. Checkpoints every 3-5 features for code review
+    5. Delivers complete app ready for deployment
 ```
 
 ## If Claude Drifts Mid-Session
