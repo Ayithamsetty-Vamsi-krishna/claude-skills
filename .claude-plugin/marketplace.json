@@ -5,65 +5,10 @@
     "email": ""
   },
   "metadata": {
-    "description": "Production-grade Claude Code skills for Django + React + Flutter SaaS development. Includes saas-dev v4.3.1 \u2014 PRD to complete app automation pipeline.",
+    "description": "saas-dev \u2014 Enterprise SaaS scaffolding for Django + React + Flutter. One install: 16 skills, PRD-to-app automation, premium UI.",
     "version": "4.3.1"
   },
   "plugins": [
-    {
-      "name": "django-react-dev",
-      "source": "./plugins/django-react-dev",
-      "description": "Full-stack orchestrator \u2014 Django REST Framework + React/TypeScript. End-to-end feature development from PRD to implementation.",
-      "version": "1.5.2",
-      "author": {
-        "name": "Ayithamsetty Vamsi Krishna"
-      },
-      "category": "development",
-      "keywords": [
-        "django",
-        "react",
-        "typescript",
-        "drf",
-        "fullstack",
-        "skill"
-      ]
-    },
-    {
-      "name": "django-backend-dev",
-      "source": "./plugins/django-backend-dev",
-      "description": "Backend-only Django REST Framework skill. Models, serializers, views, filters, admin, soft delete, audit fields, ORM optimisation, pytest testing.",
-      "version": "1.5.2",
-      "author": {
-        "name": "Ayithamsetty Vamsi Krishna"
-      },
-      "category": "development",
-      "keywords": [
-        "django",
-        "drf",
-        "backend",
-        "api",
-        "python",
-        "skill"
-      ]
-    },
-    {
-      "name": "react-frontend-dev",
-      "source": "./plugins/react-frontend-dev",
-      "description": "Frontend-only React + TypeScript skill. Redux Toolkit, Axios JWT refresh, shadcn/ui, Tailwind, shared component library, memoization, Vitest testing.",
-      "version": "1.5.2",
-      "author": {
-        "name": "Ayithamsetty Vamsi Krishna"
-      },
-      "category": "development",
-      "keywords": [
-        "react",
-        "typescript",
-        "frontend",
-        "redux",
-        "shadcn",
-        "tailwind",
-        "skill"
-      ]
-    },
     {
       "name": "saas-dev",
       "source": "./plugins/saas-dev",
@@ -96,6 +41,28 @@
         "flutter-animate",
         "claude-code",
         "agent-skills"
+      ]
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "source": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+      "description": "Optional UI/UX enhancement for saas-dev. 67 styles, 161 color palettes, 57 font pairings across React, Flutter, Next.js. Install alongside saas-dev for premium design intelligence.",
+      "version": "latest",
+      "author": {
+        "name": "nextlevelbuilder"
+      },
+      "category": "design",
+      "optional": true,
+      "keywords": [
+        "ui",
+        "ux",
+        "design",
+        "glassmorphism",
+        "flutter",
+        "react",
+        "tailwind",
+        "color-palette",
+        "typography"
       ]
     }
   ]

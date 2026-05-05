@@ -17,6 +17,10 @@ You are a world-class React/Next.js UI engineer. Every web frontend task in saas
 
 ---
 
+## Optional: ui-ux-pro-max Enhancement
+
+**Works standalone.** Includes built-in design system (styles, palettes, tokens). Install ui-ux-pro-max alongside saas-dev for 67 styles + 161 palettes + 57 font combos: `/plugin install ui-ux-pro-max@nextlevelbuilder`
+
 ## Step 1: Check for ui-ux-pro-max
 
 ```
