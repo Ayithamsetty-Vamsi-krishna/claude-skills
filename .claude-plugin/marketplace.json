@@ -42,28 +42,6 @@
         "claude-code",
         "agent-skills"
       ]
-    },
-    {
-      "name": "ui-ux-pro-max",
-      "source": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
-      "description": "Optional UI/UX enhancement for saas-dev. 67 styles, 161 color palettes, 57 font pairings across React, Flutter, Next.js. Install alongside saas-dev for premium design intelligence.",
-      "version": "latest",
-      "author": {
-        "name": "nextlevelbuilder"
-      },
-      "category": "design",
-      "optional": true,
-      "keywords": [
-        "ui",
-        "ux",
-        "design",
-        "glassmorphism",
-        "flutter",
-        "react",
-        "tailwind",
-        "color-palette",
-        "typography"
-      ]
     }
   ]
 }
