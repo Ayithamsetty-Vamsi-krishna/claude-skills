@@ -154,6 +154,11 @@ COMPLEXITY: Low
 - [ ] `django-admin startproject config .` run — `manage.py` exists at root
 - [ ] `settings/` directory with `base.py`, `development.py`, `production.py`, `testing.py`
 - [ ] `python-decouple` used for all env vars — no hardcoded secrets
+- [ ] `docker-compose.yml` created with services: django, postgres, redis
+- [ ] `Dockerfile` created (python:3.12-slim, non-root user, gunicorn entrypoint)
+- [ ] `.dockerignore` created (excludes .env, __pycache__, .git, node_modules)
+- [ ] `docker-compose.yml` tested: `docker compose up --build` starts all services
+- [ ] Dev parity rule: all developers run via Docker, no local-only setup
 - [ ] `.env` created from `.env.example` — `.env` in `.gitignore`
 - [ ] `SECRET_KEY` in `.env` — not in settings file
 - [ ] `python manage.py migrate` runs without errors

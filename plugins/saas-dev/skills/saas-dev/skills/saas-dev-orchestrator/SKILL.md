@@ -146,7 +146,7 @@ PRD formats read: [list format found e.g. business-prd.pdf, technical-prd.docx]
 ## Full Feature Breakdown
 
 ### Feature 0: Foundation
-**Purpose:** CLAUDE.md setup, BaseModel, base settings, Docker, CI skeleton
+**Purpose:** CLAUDE.md setup, BaseModel, base settings, Docker, CI skeleton, Flutter project init (if mobile in scope)
 **Depends on:** nothing
 **Estimated time:** ~2 hours
 **Specialist skills:** django-project-setup
@@ -398,6 +398,13 @@ Tell user:
 - **Design not found** → note "No design for this feature" in task, continue without design reference
 - **CLAUDE.md conflict** → show conflict, ask which decision wins before proceeding
 - **Never skip an error silently**
+- **Migration conflict** — when two features touch the same app:
+  Before starting Feature N that touches an app already modified by Feature N-1:
+  1. Run `python manage.py makemigrations --check` — if conflict found:
+  2. Run `python manage.py makemigrations --merge` to create a merge migration
+  3. Run `python manage.py migrate` to verify it applies cleanly
+  4. Commit the merge migration before proceeding
+  This is enforced in STEP 4C (execute) before any model tasks in the affected app.
 
 ---
 

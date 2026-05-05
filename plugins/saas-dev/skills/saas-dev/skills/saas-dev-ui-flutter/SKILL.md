@@ -18,6 +18,27 @@ You are a world-class Flutter engineer. Every Flutter frontend task in saas-dev 
 
 ---
 
+## Step 0: Flutter Project Creation (if no Flutter project exists yet)
+
+Before adding any packages, check if a Flutter project exists:
+
+```bash
+ls pubspec.yaml 2>/dev/null || echo "NO FLUTTER PROJECT"
+```
+
+If no Flutter project exists, create it:
+
+```bash
+# Create Flutter project (run from the repo root)
+flutter create --org com.[your_org] --project-name [app_name]   --platforms ios,android,web mobile
+
+# Verify
+cd mobile && flutter doctor && flutter run --dry-run
+```
+
+Project will be at `mobile/` (or `flutter/`) alongside the Django backend.
+Update CLAUDE.md §2 to note Flutter project location.
+
 ## Step 1: pubspec.yaml — Required Packages
 
 Add these to every Flutter project. Check pubspec.yaml and add any missing:
