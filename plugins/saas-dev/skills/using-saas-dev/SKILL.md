@@ -45,6 +45,7 @@ These skills are **NOT** always present. They load during execution:
 
 | Skill | Loads when... |
 |---|---|
+| **saas-dev-resume** | **Every new session start — reads SESSION_STATE.md + BUILD_PLAN.md + progress files, resumes automatically** |
 | **saas-dev-orchestrator** | **User uploads PRDs + says "build from PRD" — runs end-to-end app build** |
 | **saas-dev-ui-react** | **React/Next.js frontend tasks — glassmorphism, aurora, neumorphism, animated landing pages, dashboards** |
 | **saas-dev-ui-flutter** | **Flutter frontend tasks — glassmorphism cards, smooth transitions, flutter_animate, Riverpod, cross-platform** |
@@ -62,6 +63,13 @@ These skills are **NOT** always present. They load during execution:
 **During execution:** Subagent receives the task + the specialist skill content, uses patterns from the skill to write code.
 
 ## Session Start Checklist
+
+On every new session — run saas-dev-resume FIRST, then CLAUDE.md:
+
+- [ ] **Step 0: Invoke saas-dev-resume**
+  Read SESSION_STATE.md + BUILD_PLAN.md + saas-dev-progress.md
+  Reconstruct exact position. Show resume summary. Auto-resume.
+  If no prior state found → proceed to Step 1 as normal.
 
 On every new session — read CLAUDE.md in this exact order:
 
@@ -98,6 +106,13 @@ SINGLE FEATURE (you drive each iteration):
        ↓
   You: "Next feature: payments"
   ... (continue until all features done)
+
+NEW SESSION / CONTEXT RESET:
+  You: (just open the project, or say "resume" / "continue")
+       ↓
+  saas-dev-resume reads SESSION_STATE.md + BUILD_PLAN.md + saas-dev-progress.md
+  Reconstructs exact state → shows where things stand → auto-resumes
+  No re-explanation needed
 
 COMPLETE APP FROM PRD (end-to-end automation):
   You: "Build my app from PRD. Here's my business + technical PRDs (+ designs/)"

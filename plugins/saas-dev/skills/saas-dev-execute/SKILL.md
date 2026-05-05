@@ -63,6 +63,7 @@ FOR each task in saas-dev-plan.md (in dependency order):
 
   5. IF both reviews pass:
      → Write "Task N: DONE [timestamp]" to saas-dev-progress.md
+     → Write SESSION_STATE.md (current task, last done, branch state)
      → Proceed to next task
 
   6. IF any review fails:

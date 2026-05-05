@@ -391,6 +391,21 @@ Tell user:
 
 ---
 
+## SESSION_STATE.md — Write at Every Stop Point
+
+Before every STOP (waiting for user input), write SESSION_STATE.md to project root.
+This is what makes new sessions resume automatically.
+
+Write SESSION_STATE.md:
+- After Phase 1 complete summary shown (waiting for Phase 2 approval)
+- After BUILD_PLAN.md saved (waiting for feature scope confirmation)
+- After each feature auto-completes (before next feature starts)
+- When user chooses ⏸ Pause
+- When a task is BLOCKED
+- After every 3-feature checkpoint
+
+The saas-dev-resume skill reads this file to reconstruct state in new sessions.
+
 ## Error Handling Rules
 
 - **Tests red after a task** → stop execute, fix inline, re-run tests, then continue
