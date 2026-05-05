@@ -5,8 +5,8 @@
     "email": ""
   },
   "metadata": {
-    "description": "Production-grade Claude Code skills for full-stack Django + React/TypeScript development. Enforces best practices: soft delete, audit fields, ORM optimisation, shared component library, memoization, and comprehensive testing.",
-    "version": "2.0.0"
+    "description": "Production-grade Claude Code skills for Django + React + Flutter SaaS development. Includes saas-dev v4.3.1 \u2014 PRD to complete app automation pipeline.",
+    "version": "4.3.1"
   },
   "plugins": [
     {
@@ -66,18 +66,36 @@
     },
     {
       "name": "saas-dev",
-      "description": "Full-stack SaaS development suite for Django + React. Single entry point auto-router \u2014 handles auth (multi-user JWT), CRUD, integrations, frontend, and DevOps.",
-      "version": "2.0.0",
-      "install": "saas-dev@vamsi-claude-skills",
+      "source": "./plugins/saas-dev",
+      "description": "Full-stack SaaS scaffolding suite. PRD to complete app automation. Django + React + Flutter. Autonomous brainstorm, plan, execute pipeline. Enterprise patterns: multi-tenancy, audit logs, 2FA, feature flags, full-text search, webhooks, field encryption, K8s, GDPR. Premium UI: glassmorphism, aurora, neumorphism, Flutter animations.",
+      "version": "4.3.1",
+      "author": {
+        "name": "Ayithamsetty Vamsi Krishna"
+      },
       "category": "development",
       "keywords": [
         "django",
         "react",
+        "flutter",
+        "nextjs",
         "saas",
+        "enterprise",
         "typescript",
         "jwt",
         "auth",
-        "celery"
+        "multi-tenancy",
+        "audit-log",
+        "2fa",
+        "feature-flags",
+        "full-text-search",
+        "field-encryption",
+        "gdpr",
+        "kubernetes",
+        "prd-automation",
+        "glassmorphism",
+        "flutter-animate",
+        "claude-code",
+        "agent-skills"
       ]
     }
   ]
