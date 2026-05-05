@@ -178,3 +178,85 @@ v2's structured format + this protocol means:
 3. Reviewers (humans) can scan CLAUDE.md and know what's current
 4. Auto-verification is possible: scripts can check §4 matches requirements.txt,
    §5 matches .env.example, etc.
+
+---
+
+## Central CLAUDE.md + Repo-level CLAUDE.md (Multi-repo or Monorepo)
+
+### How the hierarchy works
+
+Claude Code supports two CLAUDE.md locations natively:
+- `~/.claude/CLAUDE.md` — global, applies to ALL projects on this machine
+- `[repo-root]/CLAUDE.md` — project-specific, applies to this repo only
+
+saas-dev respects this hierarchy:
+
+```
+Priority (highest to lowest):
+1. Repo-level CLAUDE.md   — project-specific decisions, feature history
+2. Central CLAUDE.md      — org-wide standards, shared patterns, global rules
+```
+
+### What goes where
+
+**Central CLAUDE.md** (`~/.claude/CLAUDE.md` or a shared `org-standards/CLAUDE.md`):
+- Org-wide coding standards (naming conventions, PR rules)
+- Shared infrastructure decisions (which cloud, which CI/CD)
+- Global security policies (all APIs must use JWT, all models must audit)
+- Approved package list / banned packages
+- Contact: who owns what service
+
+**Repo-level CLAUDE.md** (project root `CLAUDE.md`):
+- This project's stack (Django 5 + React 19 + PostgreSQL 16)
+- This project's auth pattern (Pattern C, StaffUser + CustomerUser)
+- This project's architecture decisions (ADRs)
+- This project's known issues
+- This project's recent changes
+
+### How skills load both
+
+Every skill Phase 0 check:
+
+```
+Step 1: Check for central CLAUDE.md
+  - If ~/.claude/CLAUDE.md exists → read it first (global rules apply)
+  - If org-standards/CLAUDE.md exists → read it (monorepo shared rules)
+
+Step 2: Check for repo-level CLAUDE.md
+  - If [repo-root]/CLAUDE.md exists → read it
+  - Repo-level overrides central where they conflict
+  - Repo-level adds to central where there is no conflict
+
+Step 3: Merge context
+  - Apply central rules unless repo-level explicitly overrides them
+  - If central says "all APIs use JWT" and repo CLAUDE.md says nothing → JWT enforced
+  - If repo CLAUDE.md says "use session auth for this project" → session auth used
+```
+
+### If your CLAUDE.md is already tuned with custom instructions
+
+The skill will read and follow your instructions. Specifically:
+
+- **Custom patterns**: if your CLAUDE.md §7 says "we use ULID not UUID for primary keys" →
+  the skill enforces ULID everywhere, not UUID
+- **Custom naming**: if your CLAUDE.md says "models go in domain/models/, not app/models.py" →
+  the skill uses your structure
+- **Banned patterns**: if your CLAUDE.md says "never use Celery, use Django Q instead" →
+  the skill uses Django Q for async tasks
+- **Existing decisions**: if your CLAUDE.md §7 documents an ADR for a previous decision →
+  the skill will not contradict it unless you explicitly say to change it
+
+The skill APPENDS to your CLAUDE.md. It does not replace it.
+Sections it updates: §4 (new dependencies), §7 (new ADRs), §8 (known issues), §9 (recent changes).
+Sections it never touches: your custom sections, your existing §7 ADRs, your §8 known issues.
+
+### If your CLAUDE.md uses a different format (not v2)
+
+The skill reads it as plain text and reasons about it. It will:
+- Extract your tech stack and conventions
+- Follow your patterns
+- NOT add v2 section headers unless you ask it to migrate
+
+To migrate to v2 format:
+Tell Claude Code: "Migrate my CLAUDE.md to saas-dev v2 format without changing any content."
+The skill will reformat into the 9-section structure preserving all your existing content.

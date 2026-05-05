@@ -63,11 +63,26 @@ These skills are **NOT** always present. They load during execution:
 
 ## Session Start Checklist
 
-On every new session:
-- [ ] Check if CLAUDE.md exists in root — if not, run `django-project-setup`
-- [ ] Read CLAUDE.md §1 (schema_version) + §3 (skill_version_used)
-- [ ] Note project's architecture decisions from §7
-- [ ] If task is a new feature → invoke `saas-dev-brainstorm` now with `ask_user_input_v0`
+On every new session — read CLAUDE.md in this exact order:
+
+- [ ] **Step 1: Check for central CLAUDE.md**
+  - `~/.claude/CLAUDE.md` (global Claude Code rules)
+  - `org-standards/CLAUDE.md` (monorepo shared standards)
+  - If found → read it. These are the org-wide rules. They apply unless repo-level overrides.
+
+- [ ] **Step 2: Check for repo-level CLAUDE.md**
+  - `[repo-root]/CLAUDE.md`
+  - If found → read it. Repo-level overrides central where they conflict.
+  - If NOT found → run `django-project-setup` to create it.
+
+- [ ] **Step 3: Merge context**
+  - Central rules apply by default
+  - Repo-level §7 ADRs override central for this project
+  - Your custom instructions in either file are followed precisely
+
+- [ ] Read merged CLAUDE.md §1 (schema_version) + §3 (skill_version_used)
+- [ ] Note architecture decisions from §7 — these constrain all tasks
+- [ ] If task is a new feature → invoke `saas-dev-brainstorm` now
 
 ## Quick Reference
 

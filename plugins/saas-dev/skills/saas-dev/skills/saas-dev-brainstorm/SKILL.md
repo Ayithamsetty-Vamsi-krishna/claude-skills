@@ -29,7 +29,13 @@ Produce a `saas-dev-spec.md` that captures:
 
 ## Phase 1: Autonomous Recon (SILENT — before asking anything)
 
-1. **Read CLAUDE.md** — check §7 (decisions), §3 (skill version), §1 (schema)
+1. **Read CLAUDE.md — two-level hierarchy**
+   - First: `~/.claude/CLAUDE.md` or `org-standards/CLAUDE.md` (central/global rules)
+   - Then: `[repo-root]/CLAUDE.md` (project-specific decisions)
+   - Repo-level overrides central where they conflict
+   - Your custom instructions in either file are followed precisely
+   - Check §7 (architecture decisions), §3 (skill version), §1 (schema)
+   - If your CLAUDE.md uses a custom format (not v2) → read as plain text, extract patterns
 2. **Read existing models** — scan `*/models.py` for patterns, relationships, audit fields
 3. **Read existing views** — check `*/views.py` for DRF patterns in use
 4. **Check tests** — scan `*/tests/` to understand existing test structure
